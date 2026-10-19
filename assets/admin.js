@@ -292,6 +292,7 @@
 
     var list = currentSites();
     var kw = state.keyword.trim().toLowerCase();
+    var total = list.length;
 
     if (kw) {
       list = list.filter(function (s) {
@@ -302,14 +303,36 @@
     // 标题
     if (state.curCat === 0) {
       viewTitle.textContent = '全部站点';
-      viewDesc.textContent = '共 ' + list.length + ' 个站点。点左侧分类可单独管理并拖拽排序';
+      viewDesc.textContent = kw
+        ? ('匹配 ' + list.length + ' / 共 ' + total + ' 个站点（筛选：' + state.keyword.trim() + '）')
+        : ('共 ' + list.length + ' 个站点。点左侧分类可单独管理并拖拽排序');
     } else {
       var cat = state.cats.filter(function (c) { return +c.id === state.curCat; })[0];
       viewTitle.textContent = (cat && cat.icon ? cat.icon + ' ' : '') + (cat ? cat.name : '');
-      viewDesc.textContent = list.length + ' 个站点 · 拖拽左侧圆形手柄调整顺序，改动自动保存';
+      viewDesc.textContent = kw
+        ? ('匹配 ' + list.length + ' / 共 ' + total + ' 个站点（筛选：' + state.keyword.trim() + '）')
+        : (list.length + ' 个站点 · 拖拽左侧圆形手柄调整顺序，改动自动保存');
     }
 
     rowsEmpty.hidden = list.length !== 0;
+
+    // ⚠️ 空状态必须区分「分类下本来就没站点」和「筛选没匹配上」。
+    // 否则搜索框里残留一个关键词，页面就显示「这里还没有站点」，
+    // 看起来像数据丢了（v1.2.0 及更早的表现，v1.2.1 修）。
+    if (list.length === 0 && kw) {
+      rowsEmpty.innerHTML = '';
+      rowsEmpty.appendChild(document.createTextNode('没有匹配「' + state.keyword.trim() + '」的站点  '));
+      var clrBtn = el('button', { type: 'button', class: 'btn', id: 'clearKw', text: '清空筛选' });
+      clrBtn.addEventListener('click', function () {
+        filterEl.value = '';
+        state.keyword = '';
+        filterEl.focus();
+        renderRows();
+      });
+      rowsEmpty.appendChild(clrBtn);
+    } else {
+      rowsEmpty.textContent = '这里还没有站点，点右上角「新增站点」开始';
+    }
 
     var draggable = state.curCat !== 0 && !kw;
 
