@@ -186,12 +186,50 @@ docker compose up -d
 
 | 标签 | 含义 | 适合 |
 |---|---|---|
-| `latest` | 始终最新 | **推荐**。以后升级只需 `docker compose pull && docker compose up -d`，或在 NAS 的 Docker 面板点「重新构建」 |
-| `1.1.2` | 锁死某个版本 | 想完全掌控升级时机 |
-| `1.1` | 锁死小版本线 | 只要补丁更新 |
+| `latest` | 始终最新 | **推荐**。以后升级只需 `docker compose pull && docker compose up -d` |
+| `1.2.2` | 锁死某个版本 | 想完全掌控升级时机 |
+| `1.2` | 锁死小版本线 | 只要补丁更新 |
 
-> ⚠️ 用固定版本号（如 `1.1.2`）时，**改版本号之前点多少次「重新构建」都不会升级** ——
+> ⚠️ 用固定版本号（如 `1.2.2`）时，**改版本号之前点多少次「重新构建」都不会升级** ——
 > 面板只会按 compose 里写的标签重新拉。想靠按钮升级就用 `latest`。
+
+> ⚠️ **NAS 面板用户注意**：飞牛 / 群晖这类面板的「重新构建」**不会重新 pull 本地已有的标签**
+> （本地已经有 `latest` 就直接用旧的）。要么先到「本地镜像」删掉旧镜像再重建，
+> 要么直接用下面的一行命令，或者更省事 —— 用后台的「一键升级」。
+
+#### 升级：三种方式，挑最顺手的
+
+**① 后台一键升级（推荐，任何部署方式都能用）**
+
+后台 → **设置 → 版本与更新 → 检查更新 → 立即升级**。
+
+它从 GitHub 拉最新源码覆盖程序文件，**不碰 `data/` 目录**（站点数据、图标缓存都不受影响），
+覆盖前自动把被替换的文件备份到 `data/_backup/<时间戳>/`（只保留最近 3 份）。
+Docker 部署、虚拟主机部署都通用，不需要碰面板、不需要敲命令。
+
+**② 一行命令（Docker）**
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+国内拉 ghcr.io 慢就把 compose 里的 image 换成南大镜像源
+`ghcr.nju.edu.cn/foxnangang/qingchen-nav:latest`，速度差几十倍。
+
+**③ 完全自动化（一次配置，之后不用管）**
+
+加一个 watchtower 容器，它会定时检查新镜像并自动重建：
+
+```yaml
+  watchtower:
+    image: containrrr/watchtower
+    command: --cleanup --schedule "0 0 4 * * *"   # 每天凌晨 4 点
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: Asia/Shanghai
+    restart: unless-stopped
+```
 
 > 🔑 **默认账号是 `admin` / `foxnan888`**。这个默认值只是让你贴完就能跑，**装好请立刻到后台「设置 → 修改密码」换掉**。
 

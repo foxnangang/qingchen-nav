@@ -36,8 +36,8 @@ RUN set -eux; \
            /var/www/html/data/*.db-shm \
            /var/www/html/data/fav; \
     mkdir -p /var/www/html/data/fav; \
-    chown -R www-data:www-data /var/www/html/data; \
-    chmod 775 /var/www/html/data
+    chmod 775 /var/www/html/data; \
+    chown -R www-data:www-data /var/www/html
 
 COPY docker/entrypoint.sh /usr/local/bin/qcnav-entrypoint
 RUN chmod +x /usr/local/bin/qcnav-entrypoint

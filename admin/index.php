@@ -337,6 +337,16 @@ window.__LOGGED__ = false;
         <p class="hint">导入按「分类名 + 站点名」去重，不会产生重复项；不存在的分类会自动创建。</p>
       </section>
 
+      <section class="set-sec">
+        <h3 class="set-h">版本与更新</h3>
+        <div class="upd-row">
+          <span class="upd-cur">当前版本 <b id="updCur">—</b></span>
+          <button type="button" class="btn btn-ghost btn-sm2" id="updCheckBtn">检查更新</button>
+        </div>
+        <div id="updBox" class="upd-box" hidden></div>
+        <p class="hint">「立即升级」会从 GitHub 拉最新源码覆盖程序文件，<b>不碰 data/ 目录</b>（站点数据不受影响），覆盖前自动备份。Docker 部署也能用。</p>
+      </section>
+
       <p class="form-err" id="setErr"></p>
       <p class="form-ok" id="setOk"></p>
     </div>

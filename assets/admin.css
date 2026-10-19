@@ -476,6 +476,60 @@ select.input {
   font-size: 13px;
 }
 
+/* ---------- 版本与更新 ---------- */
+.upd-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.upd-cur { font-size: 13px; color: var(--muted); }
+.upd-cur b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+.btn-sm2 {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12.5px;
+}
+
+.upd-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-hi);
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.upd-head { margin-bottom: 6px; }
+.upd-muted { color: var(--muted); }
+.upd-ok { color: var(--teal); }
+.upd-err { color: var(--danger); }
+
+.upd-notes {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: var(--text-soft);
+  font: 12px/1.6 var(--mono, ui-monospace, Consolas, monospace);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.upd-acts {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upd-link { color: var(--gold); text-decoration: none; font-size: 12.5px; }
+.upd-link:hover { text-decoration: underline; }
+
 /* 筛选无结果时，空状态里那个「清空筛选」按钮 */
 .rows-empty .btn {
   height: 28px;

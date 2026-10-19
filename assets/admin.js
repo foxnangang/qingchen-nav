@@ -662,6 +662,9 @@
     $('setSubtitle').value = state.config.subtitle || '';
     $('setOwner').value = state.config.owner || '';
     $('setFooter').value = state.config.footer || '';
+    $('updCur').textContent = 'v' + (state.config.version || '0.0.0');
+    $('updBox').hidden = true;
+    $('updBox').innerHTML = '';
     $('setCustomCss').value = state.config.custom_css || '';
     $('setCustomJs').value = state.config.custom_js || '';
     $('setAccess').value = state.config.access || 'public';
@@ -845,6 +848,65 @@
     state.curCat = 0;
     renderSide();
     renderRows();
+  });
+
+  /* ================================================================ 内置升级 */
+
+  function updBox() { return $('updBox'); }
+
+  $('updCheckBtn').addEventListener('click', function () {
+    var box = updBox();
+    var btn = $('updCheckBtn');
+    btn.disabled = true;
+    btn.textContent = '检查中…';
+    box.hidden = false;
+    box.innerHTML = '<span class="upd-muted">正在向 GitHub 查询最新版本…</span>';
+
+    req('update_check', {}).then(function (j) {
+      btn.disabled = false;
+      btn.textContent = '检查更新';
+      if (!j.ok) { box.innerHTML = '<span class="upd-err">' + (j.error || '检查失败') + '</span>'; return; }
+
+      if (j.up_to_date) {
+        box.innerHTML = '<span class="upd-ok">已是最新版本 v' + j.current + '</span>';
+        return;
+      }
+      var html = '<div class="upd-head">发现新版本 <b>v' + j.latest + '</b>'
+               + '<span class="upd-muted">（当前 v' + j.current + '）</span></div>';
+      if (j.notes) {
+        html += '<pre class="upd-notes">' + String(j.notes).replace(/</g, '&lt;').slice(0, 900) + '</pre>';
+      }
+      html += '<div class="upd-acts"><button type="button" class="btn btn-primary btn-sm2" id="updGoBtn">立即升级</button>'
+            + '<a class="upd-link" href="' + (j.url || '#') + '" target="_blank" rel="noopener">查看 Release</a></div>';
+      box.innerHTML = html;
+
+      $('updGoBtn').addEventListener('click', function () {
+        var go = $('updGoBtn');
+        go.disabled = true;
+        go.textContent = '升级中…';
+        req('update_apply', { tag: j.latest }).then(function (r) {
+          if (!r.ok) {
+            go.disabled = false;
+            go.textContent = '重试升级';
+            box.innerHTML += '<div class="upd-err">' + (r.error || '升级失败')
+                           + (r.failed ? '<br>失败文件：' + r.failed.join('、') : '') + '</div>';
+            return;
+          }
+          box.innerHTML = '<span class="upd-ok">升级完成，已更新 ' + r.files + ' 个文件到 v' + r.version
+                        + '（备份：data/_backup/' + (r.backup || '') + '）</span>'
+                        + '<div class="upd-acts"><button type="button" class="btn btn-primary btn-sm2" id="updReload">刷新页面</button></div>';
+          $('updReload').addEventListener('click', function () { location.reload(); });
+        }).catch(function (e) {
+          go.disabled = false;
+          go.textContent = '重试升级';
+          box.innerHTML += '<div class="upd-err">升级失败：' + e.message + '</div>';
+        });
+      });
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = '检查更新';
+      box.innerHTML = '<span class="upd-err">检查失败：' + e.message + '</span>';
+    });
   });
 
   /* ================================================================ 启动 */

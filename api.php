@@ -52,6 +52,185 @@ function i(array $a, string $k, int $def = 0): int
 
 function pin_ok(): bool
 {
+    // 留作兼容
+    return true;
+}
+
+/* --------------------------------------------------------------------------
+ * 内置升级用到的两个 HTTP 小工具
+ * 优先 curl，没有就退回 file_get_contents（共享虚拟主机常见）
+ * ------------------------------------------------------------------------ */
+
+function nav_http_get(string $url, int $timeout = 15): string
+{
+    $ua = 'qingchen-nav/' . NAV_VERSION;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_USERAGENT      => $ua,
+            CURLOPT_FAILONERROR    => true,
+        ]);
+        $body = curl_exec($ch);
+        curl_close($ch);
+        return is_string($body) ? $body : '';
+    }
+    $ctx = stream_context_create([
+        'http' => ['method' => 'GET', 'timeout' => $timeout, 'header' => "User-Agent: $ua\r\n"],
+    ]);
+    $body = @file_get_contents($url, false, $ctx);
+    return is_string($body) ? $body : '';
+}
+
+function nav_http_download(string $url, string $dest, int $timeout = 180): bool
+{
+    $ua   = 'qingchen-nav/' . NAV_VERSION;
+    $dir  = dirname($dest);
+    if (!is_dir($dir)) @mkdir($dir, 0775, true);
+
+    if (function_exists('curl_init')) {
+        $fp = @fopen($dest, 'wb');
+        if (!$fp) return false;
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_FILE           => $fp,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT        => $timeout,
+            CURLOPT_USERAGENT      => $ua,
+            CURLOPT_FAILONERROR    => true,
+        ]);
+        $ok = curl_exec($ch);
+        curl_close($ch);
+        fclose($fp);
+        return $ok === true;
+    }
+
+    $ctx  = stream_context_create([
+        'http' => ['method' => 'GET', 'timeout' => $timeout, 'header' => "User-Agent: $ua\r\n"],
+    ]);
+    $body = @file_get_contents($url, false, $ctx);
+    if (!is_string($body) || $body === '') return false;
+    return @file_put_contents($dest, $body) !== false;
+}
+
+/**
+ * 自更新：从 GitHub 拉指定 tag 的源码包，覆盖到站点根目录。
+ *
+ * - 只覆盖程序文件，**绝不动 data/**（数据库、图标缓存都在那儿）
+ * - 覆盖前把被替换的文件备份到 data/_backup/<时间戳>/
+ * - install.php 跳过（装完就被禁用了，不该被升级包复活）
+ */
+function nav_self_update(string $tag): array
+{
+    $root = rtrim(NAV_ROOT, '/');
+    $url  = 'https://github.com/foxnangang/qingchen-nav/archive/refs/tags/' . $tag . '.tar.gz';
+
+    $tmp = sys_get_temp_dir() . '/qcnav-upd-' . bin2hex(random_bytes(4));
+    $tar = $tmp . '.tar.gz';
+
+    if (!nav_http_download($url, $tar)) {
+        @unlink($tar);
+        return ['ok' => false, 'error' => '下载失败：连不上 GitHub 或网络超时'];
+    }
+
+    try {
+        @mkdir($tmp, 0775, true);
+        (new PharData($tar))->extractTo($tmp, null, true);
+    } catch (Throwable $e) {
+        @unlink($tar);
+        return ['ok' => false, 'error' => '解压失败：' . $e->getMessage()];
+    }
+
+    $dirs = glob($tmp . '/*', GLOB_ONLYDIR) ?: [];
+    if (!$dirs) {
+        @unlink($tar);
+        return ['ok' => false, 'error' => '源码包结构异常'];
+    }
+    $src = $dirs[0];
+
+    // 备份目录（data 下，最多保留 3 份）
+    $bak = $root . '/data/_backup/' . date('Ymd-His');
+
+    $changed = 0;
+    $failed  = [];
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($src, FilesystemIterator::SKIP_DOTS)
+    );
+
+    foreach ($it as $f) {
+        $rel = str_replace('\\', '/', substr($f->getPathname(), strlen($src) + 1));
+        $top = explode('/', $rel)[0];
+
+        if ($top === 'data') continue;                 // 数据目录，绝不碰
+        if (preg_match('#^install\.php#', $rel)) continue; // 安装页不复活
+
+        $dst = $root . '/' . $rel;
+
+        if ($f->isDir()) {
+            if (!is_dir($dst)) @mkdir($dst, 0775, true);
+            continue;
+        }
+        if (!is_dir(dirname($dst))) @mkdir(dirname($dst), 0775, true);
+
+        if (file_exists($dst)) {
+            if (!is_writable($dst)) { $failed[] = $rel; continue; }
+            @mkdir(dirname($bak . '/' . $rel), 0775, true);
+            @copy($dst, $bak . '/' . $rel);
+        }
+        if (@copy($f->getPathname(), $dst)) $changed++;
+        else $failed[] = $rel;
+    }
+
+    // 清理临时文件 + 只保留最近 3 份备份
+    @unlink($tar);
+    nav_rmrf($tmp);
+    nav_prune_backups($root . '/data/_backup', 3);
+
+    // 读新版本号
+    $newVer = NAV_VERSION;
+    $newLib = $src . '/lib.php';
+    if (is_file($newLib) && preg_match("/const\s+NAV_VERSION\s*=\s*'([^']+)'/", (string) file_get_contents($newLib), $m)) {
+        $newVer = $m[1];
+    }
+    nav_rmrf($tmp);
+
+    if ($failed) {
+        return [
+            'ok'     => false,
+            'error'  => '有 ' . count($failed) . ' 个文件写不进去（目录不可写）。已更新 ' . $changed
+                      . ' 个，请先给程序目录写权限再重试。',
+            'files'  => $changed,
+            'failed' => array_slice($failed, 0, 8),
+        ];
+    }
+    return ['ok' => true, 'files' => $changed, 'version' => $newVer, 'backup' => basename($bak)];
+}
+
+function nav_rmrf(string $dir): void
+{
+    if (!is_dir($dir)) return;
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
+    foreach ($it as $f) {
+        $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
+    }
+    @rmdir($dir);
+}
+
+function nav_prune_backups(string $dir, int $keep): void
+{
+    if (!is_dir($dir)) return;
+    $all = glob($dir . '/*', GLOB_ONLYDIR) ?: [];
+    if (count($all) <= $keep) return;
+    rsort($all);
+    foreach (array_slice($all, $keep) as $d) nav_rmrf($d);
+}
     nav_session();
     if (!empty($_SESSION['nav_pin_ok'])) {
         return true;
@@ -175,6 +354,7 @@ switch ($action) {
                 'custom_css' => nav_get('custom_css', ''),
                 'custom_js'  => nav_get('custom_js', ''),
                 'user'     => nav_get('admin_user'),
+                'version'  => NAV_VERSION,
             ],
             'csrf'   => nav_csrf(),
         ]);
@@ -428,6 +608,41 @@ switch ($action) {
         break;
 
     /* ==================== 导入导出 ==================== */
+
+    /* ==================== 内置一键升级 ==================== */
+
+    case 'update_check':
+        require_admin();
+        $raw = nav_http_get('https://api.github.com/repos/foxnangang/qingchen-nav/releases/latest', 15);
+        if ($raw === '') {
+            json_out(['ok' => false, 'error' => '连不上 GitHub，请检查服务器出口网络（或稍后再试）'], 502);
+        }
+        $j = json_decode($raw, true);
+        if (!is_array($j) || empty($j['tag_name'])) {
+            json_out(['ok' => false, 'error' => 'GitHub 返回异常：' . mb_substr($raw, 0, 120, 'UTF-8')], 502);
+        }
+        $latest = ltrim((string) $j['tag_name'], 'vV');
+        json_out([
+            'ok'         => true,
+            'current'    => NAV_VERSION,
+            'latest'     => $latest,
+            'up_to_date' => version_compare($latest, NAV_VERSION, '<='),
+            'name'       => (string) ($j['name'] ?? $j['tag_name']),
+            'notes'      => (string) ($j['body'] ?? ''),
+            'url'        => (string) ($j['html_url'] ?? ''),
+            'date'       => (string) ($j['published_at'] ?? ''),
+            'csrf'       => nav_csrf(),
+        ]);
+        break;
+
+    case 'update_apply':
+        require_admin();
+        $tag = s($in, 'tag');
+        if (!preg_match('/^v?\d+\.\d+\.\d+$/', $tag)) {
+            json_out(['ok' => false, 'error' => '版本号不合法：' . $tag], 400);
+        }
+        json_out(nav_self_update('v' . ltrim($tag, 'vV')));
+        break;
 
     case 'export':
         require_admin();
