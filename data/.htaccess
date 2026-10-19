@@ -1,0 +1,9 @@
+# 禁止从 Web 直接访问本目录（Apache 2.4+）
+#
+# 如果你的站点配置里是 AllowOverride None，这条不会生效，
+# 请改到 vhost 里：
+#   <Directory "/path/to/nav/data">
+#       Require all denied
+#   </Directory>
+
+Require all denied

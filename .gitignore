@@ -1,0 +1,17 @@
+# 运行时数据，不入库
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/fav/
+data/install.lock
+
+# 保留目录本身
+!data/.gitkeep
+!data/.htaccess
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

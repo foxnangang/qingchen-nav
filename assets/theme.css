@@ -1,0 +1,392 @@
+/* ==========================================================================
+   卿辰导航 — 主题系统
+   8 套配色 × 6 种背景，前后台共用同一份色彩变量
+
+   配色（html[data-theme]）：
+     dark 墨金 / light 宣纸 / forest 苔青 / ocean 深海
+     violet 夜紫 / mono 极简 / rose 樱砂 / terminal 终端
+
+   背景（html[data-bg]）：
+     aurora 极光 / grid 网格 / dots 点阵 / mesh 云斑 / plain 纯色 / photo 图片
+
+@since 2026-10-19
+   ========================================================================== */
+
+/* ---------- 默认：墨金（与 [data-theme="dark"] 一致） ---------- */
+:root,
+[data-theme="dark"] {
+  --bg:            #090B0A;
+  --bg-deep:       #060807;
+  --bg-2:          #0D100E;
+  --surface:       rgba(255, 255, 255, 0.034);
+  --surface-hi:    rgba(255, 255, 255, 0.062);
+  --border:        rgba(255, 255, 255, 0.072);
+  --border-hi:     rgba(255, 255, 255, 0.16);
+  --text:          #E9EBE8;
+  --text-soft:     #B4BAB5;
+  --muted:         #7C837E;
+  --gold:          #C9A227;
+  --gold-soft:     rgba(201, 162, 39, 0.14);
+  --teal:          #6FA898;
+  --danger:        #D96B6B;
+  --danger-soft:   rgba(217, 107, 107, 0.13);
+  --icon-bg:       rgba(255, 255, 255, 0.05);
+  --shadow:        0 18px 48px -20px rgba(0, 0, 0, 0.85);
+  --glow-1:        rgba(201, 162, 39, 0.13);
+  --glow-2:        rgba(111, 168, 152, 0.075);
+  --glow-3:        rgba(91, 141, 239, 0.055);
+  --grid-line:     rgba(255, 255, 255, 0.075);
+  --bamboo-line:   rgba(255, 255, 255, 0.055);
+  --grain-op:      0.028;
+  --meta-color:    #090B0A;
+  --on-gold:       #0A0C0B;
+  color-scheme:    dark;
+}
+
+/* ---------- 宣纸（浅色 · 暖白） ---------- */
+[data-theme="light"] {
+  --bg:            #F7F5F0;
+  --bg-deep:       #EFEBE3;
+  --bg-2:          #FFFFFF;
+  --surface:       rgba(255, 255, 255, 0.72);
+  --surface-hi:    rgba(255, 255, 255, 0.95);
+  --border:        rgba(26, 29, 27, 0.085);
+  --border-hi:     rgba(26, 29, 27, 0.2);
+  --text:          #1A1D1B;
+  --text-soft:     #3E4642;
+  --muted:         #6E7672;
+  --gold:          #A8841A;
+  --gold-soft:     rgba(168, 132, 26, 0.12);
+  --teal:          #3F7D6C;
+  --danger:        #C05252;
+  --danger-soft:   rgba(192, 82, 82, 0.1);
+  --icon-bg:       rgba(26, 29, 27, 0.05);
+  --shadow:        0 18px 40px -22px rgba(26, 29, 27, 0.28);
+  --glow-1:        rgba(201, 162, 39, 0.16);
+  --glow-2:        rgba(111, 168, 152, 0.1);
+  --glow-3:        rgba(91, 141, 239, 0.07);
+  --grid-line:     rgba(26, 29, 27, 0.07);
+  --bamboo-line:   rgba(26, 29, 27, 0.05);
+  --grain-op:      0.018;
+  --meta-color:    #F7F5F0;
+  --on-gold:       #FFFFFF;
+  color-scheme:    light;
+}
+
+/* ---------- 苔青（深 · 青瓷绿） ---------- */
+[data-theme="forest"] {
+  --bg:            #081210;
+  --bg-deep:       #050D0B;
+  --bg-2:          #0C1A16;
+  --surface:       rgba(255, 255, 255, 0.04);
+  --surface-hi:    rgba(255, 255, 255, 0.07);
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-hi:     rgba(255, 255, 255, 0.18);
+  --text:          #E2EDE8;
+  --text-soft:     #A9BDB4;
+  --muted:         #6F8478;
+  --gold:          #7FBFA9;
+  --gold-soft:     rgba(127, 191, 169, 0.15);
+  --teal:          #9ED9C0;
+  --danger:        #D98A7A;
+  --danger-soft:   rgba(217, 138, 122, 0.13);
+  --icon-bg:       rgba(255, 255, 255, 0.055);
+  --shadow:        0 18px 48px -20px rgba(0, 10, 6, 0.8);
+  --glow-1:        rgba(127, 191, 169, 0.14);
+  --glow-2:        rgba(74, 124, 109, 0.12);
+  --glow-3:        rgba(191, 214, 138, 0.05);
+  --grain-op:      0.03;
+  --meta-color:    #081210;
+  color-scheme:    dark;
+}
+
+/* ---------- 深海（深 · 钢蓝） ---------- */
+[data-theme="ocean"] {
+  --bg:            #060B14;
+  --bg-deep:       #03070E;
+  --bg-2:          #0A1524;
+  --surface:       rgba(255, 255, 255, 0.042);
+  --surface-hi:    rgba(255, 255, 255, 0.075);
+  --border:        rgba(255, 255, 255, 0.085);
+  --border-hi:     rgba(255, 255, 255, 0.19);
+  --text:          #E3EBF7;
+  --text-soft:     #A8B6CC;
+  --muted:         #6B7B94;
+  --gold:          #6EA8F0;
+  --gold-soft:     rgba(110, 168, 240, 0.15);
+  --teal:          #67D2D8;
+  --danger:        #E0798A;
+  --danger-soft:   rgba(224, 121, 138, 0.13);
+  --icon-bg:       rgba(255, 255, 255, 0.055);
+  --shadow:        0 18px 48px -20px rgba(0, 10, 30, 0.85);
+  --glow-1:        rgba(110, 168, 240, 0.16);
+  --glow-2:        rgba(103, 210, 216, 0.09);
+  --glow-3:        rgba(167, 139, 250, 0.07);
+  --grain-op:      0.026;
+  --meta-color:    #060B14;
+  color-scheme:    dark;
+}
+
+/* ---------- 夜紫（深 · 紫罗兰） ---------- */
+[data-theme="violet"] {
+  --bg:            #0A0714;
+  --bg-deep:       #06040E;
+  --bg-2:          #120C22;
+  --surface:       rgba(255, 255, 255, 0.045);
+  --surface-hi:    rgba(255, 255, 255, 0.08);
+  --border:        rgba(255, 255, 255, 0.09);
+  --border-hi:     rgba(255, 255, 255, 0.2);
+  --text:          #ECE8FA;
+  --text-soft:     #B7AED0;
+  --muted:         #7B7196;
+  --gold:          #A78BFA;
+  --gold-soft:     rgba(167, 139, 250, 0.16);
+  --teal:          #7DD3FC;
+  --danger:        #F47C9C;
+  --danger-soft:   rgba(244, 124, 156, 0.13);
+  --icon-bg:       rgba(255, 255, 255, 0.06);
+  --shadow:        0 18px 48px -20px rgba(10, 0, 25, 0.85);
+  --glow-1:        rgba(167, 139, 250, 0.18);
+  --glow-2:        rgba(244, 124, 156, 0.1);
+  --glow-3:        rgba(125, 211, 252, 0.08);
+  --grain-op:      0.03;
+  --meta-color:    #0A0714;
+  color-scheme:    dark;
+}
+
+/* ---------- 极简（深 · 纯黑白） ---------- */
+[data-theme="mono"] {
+  --bg:            #0B0B0B;
+  --bg-deep:       #050505;
+  --bg-2:          #121212;
+  --surface:       rgba(255, 255, 255, 0.04);
+  --surface-hi:    rgba(255, 255, 255, 0.075);
+  --border:        rgba(255, 255, 255, 0.09);
+  --border-hi:     rgba(255, 255, 255, 0.22);
+  --text:          #F0F0F0;
+  --text-soft:     #B8B8B8;
+  --muted:         #7A7A7A;
+  --gold:          #EDEDED;
+  --gold-soft:     rgba(255, 255, 255, 0.1);
+  --teal:          #A8A8A8;
+  --danger:        #E07A7A;
+  --danger-soft:   rgba(224, 122, 122, 0.12);
+  --icon-bg:       rgba(255, 255, 255, 0.06);
+  --shadow:        0 20px 50px -22px rgba(0, 0, 0, 0.9);
+  --glow-1:        rgba(255, 255, 255, 0.06);
+  --glow-2:        rgba(255, 255, 255, 0.035);
+  --glow-3:        rgba(255, 255, 255, 0.02);
+  --grain-op:      0.035;
+  --meta-color:    #0B0B0B;
+  color-scheme:    dark;
+}
+
+/* ---------- 樱砂（浅 · 胭脂粉） ---------- */
+[data-theme="rose"] {
+  --bg:            #FBF5F2;
+  --bg-deep:       #F4E9E3;
+  --bg-2:          #FFFFFF;
+  --surface:       rgba(255, 255, 255, 0.75);
+  --surface-hi:    rgba(255, 255, 255, 0.96);
+  --border:        rgba(45, 30, 34, 0.085);
+  --border-hi:     rgba(45, 30, 34, 0.2);
+  --text:          #2A2124;
+  --text-soft:     #584549;
+  --muted:         #8A7478;
+  --gold:          #C4717A;
+  --gold-soft:     rgba(196, 113, 122, 0.13);
+  --teal:          #6FA898;
+  --danger:        #C4525C;
+  --danger-soft:   rgba(196, 82, 92, 0.1);
+  --icon-bg:       rgba(45, 30, 34, 0.05);
+  --shadow:        0 18px 40px -22px rgba(72, 45, 50, 0.24);
+  --glow-1:        rgba(196, 113, 122, 0.16);
+  --glow-2:        rgba(240, 190, 170, 0.22);
+  --glow-3:        rgba(111, 168, 152, 0.09);
+  --grid-line:     rgba(45, 30, 34, 0.07);
+  --bamboo-line:   rgba(45, 30, 34, 0.05);
+  --grain-op:      0.016;
+  --meta-color:    #FBF5F2;
+  --on-gold:       #FFFFFF;
+  color-scheme:    light;
+}
+
+/* ---------- 茶白（浅 · 米白 + 墨绿 / 竹青 · 东方禅意） ---------- */
+[data-theme="chabai"] {
+  --bg:            #F3F1E9;   /* 米白宣纸 */
+  --bg-deep:       #E9E6DA;
+  --bg-2:          #FBFAF4;
+  --surface:       rgba(255, 255, 255, 0.66);
+  --surface-hi:    rgba(255, 255, 255, 0.93);
+  --border:        rgba(38, 48, 40, 0.085);
+  --border-hi:     rgba(38, 48, 40, 0.2);
+  --text:          #232923;   /* 墨绿黑 */
+  --text-soft:     #45503F;
+  --muted:         #77806F;
+  --gold:          #3E6B52;   /* 墨绿主色 */
+  --gold-soft:     rgba(62, 107, 82, 0.13);
+  --teal:          #4F7A5E;   /* 竹青 */
+  --danger:        #B5695F;   /* 陶土红 */
+  --danger-soft:   rgba(181, 105, 95, 0.1);
+  --icon-bg:       rgba(38, 48, 40, 0.045);
+  --shadow:        0 18px 40px -22px rgba(40, 52, 44, 0.24);
+  --glow-1:        rgba(62, 107, 82, 0.13);
+  --glow-2:        rgba(134, 169, 143, 0.2);
+  --glow-3:        rgba(196, 178, 128, 0.17);  /* 一点茶金 */
+  --grid-line:     rgba(38, 48, 40, 0.072);
+  --bamboo-line:   rgba(38, 48, 40, 0.048);
+  --grain-op:      0.015;
+  --meta-color:    #F3F1E9;
+  --on-gold:       #FFFFFF;
+  color-scheme:    light;
+}
+
+/* ---------- 终端（深 · 荧光绿 · 等宽） ---------- */
+[data-theme="terminal"] {
+  --bg:            #04090A;
+  --bg-deep:       #020506;
+  --bg-2:          #071213;
+  --surface:       rgba(255, 255, 255, 0.038);
+  --surface-hi:    rgba(255, 255, 255, 0.07);
+  --border:        rgba(74, 222, 128, 0.16);
+  --border-hi:     rgba(74, 222, 128, 0.34);
+  --text:          #D6E8DC;
+  --text-soft:     #9DB5A5;
+  --muted:         #64786C;
+  --gold:          #4ADE80;
+  --gold-soft:     rgba(74, 222, 128, 0.14);
+  --teal:          #38BDF8;
+  --danger:        #F87171;
+  --danger-soft:   rgba(248, 113, 113, 0.13);
+  --icon-bg:       rgba(74, 222, 128, 0.06);
+  --shadow:        0 18px 48px -20px rgba(0, 0, 0, 0.9);
+  --glow-1:        rgba(74, 222, 128, 0.12);
+  --glow-2:        rgba(56, 189, 248, 0.06);
+  --glow-3:        rgba(74, 222, 128, 0.04);
+  --grain-op:      0.032;
+  --meta-color:    #04090A;
+  color-scheme:    dark;
+}
+
+/* 终端主题给标题一点等宽字感 */
+[data-theme="terminal"] .hero-title,
+[data-theme="terminal"] .card-name {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   背景层
+   .bg-glow 负责图案，.bg-photo 负责自定义图片
+   ========================================================================== */
+
+.bg-glow,
+.bg-photo,
+.bg-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bg-glow {
+  background-image: var(--bg-layer, none);
+  background-size: var(--bg-size, auto);
+  background-position: var(--bg-pos, center);
+  background-repeat: var(--bg-repeat, no-repeat);
+  transition: opacity 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.bg-grain { opacity: var(--grain-op, 0.028); }
+
+/* 网格 / 点阵：边缘用遮罩淡出，避免视觉噪音 */
+[data-bg="grid"] .bg-glow,
+[data-bg="dots"] .bg-glow {
+  -webkit-mask-image: radial-gradient(ellipse 96% 88% at 50% 0%, #000 58%, transparent 100%);
+  mask-image: radial-gradient(ellipse 96% 88% at 50% 0%, #000 58%, transparent 100%);
+}
+
+/* —— 极光：三团柔和光晕（默认） —— */
+[data-bg="aurora"],
+:root:not([data-bg]) {
+  --bg-layer:
+    radial-gradient(1000px 560px at 50% -12%, var(--glow-1), transparent 68%),
+    radial-gradient(760px 440px at 88% 6%, var(--glow-2), transparent 70%),
+    radial-gradient(660px 420px at 6% 44%, var(--glow-3), transparent 70%);
+}
+
+/* —— 网格：细线 + 顶部光晕 —— */
+[data-bg="grid"] {
+  --bg-layer:
+    radial-gradient(900px 500px at 50% -10%, var(--glow-1), transparent 70%),
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  --bg-size: auto, 46px 46px, 46px 46px;
+}
+
+/* —— 点阵 —— */
+[data-bg="dots"] {
+  --bg-layer:
+    radial-gradient(900px 500px at 50% -10%, var(--glow-1), transparent 70%),
+    radial-gradient(var(--grid-line) 1.2px, transparent 1.2px);
+  --bg-size: auto, 20px 20px;
+}
+
+/* —— 云斑：更大更散的多色光团 —— */
+[data-bg="mesh"] {
+  --bg-layer:
+    radial-gradient(900px 620px at 12% 8%, var(--glow-1), transparent 66%),
+    radial-gradient(820px 560px at 88% 14%, var(--glow-2), transparent 66%),
+    radial-gradient(940px 640px at 50% 96%, var(--glow-3), transparent 68%);
+}
+
+/* —— 竹影：两重疏密竖纹，像光透过竹帘 —— */
+[data-bg="bamboo"] {
+  --bg-layer:
+    radial-gradient(880px 520px at 50% -10%, var(--glow-1), transparent 72%),
+    radial-gradient(720px 820px at 88% 24%, var(--glow-2), transparent 74%),
+    repeating-linear-gradient(90deg, var(--bamboo-line) 0 2px, transparent 2px 32px),
+    repeating-linear-gradient(90deg, var(--bamboo-line) 0 1px, transparent 1px 53px);
+}
+
+/* 帘影往下淡出，像光从上方斜进来 */
+[data-bg="bamboo"] .bg-glow {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 94%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 94%);
+}
+
+/* —— 纸纹：极淡的斜向纤维 —— */
+[data-bg="paper"] {
+  --bg-layer:
+    radial-gradient(900px 520px at 50% -10%, var(--glow-1), transparent 72%),
+    repeating-linear-gradient(115deg, var(--bamboo-line) 0 1px, transparent 1px 5px);
+}
+
+/* —— 纯色：不留任何图案 —— */
+[data-bg="plain"] {
+  --bg-layer: none;
+}
+
+/* —— 图片：底层图片 + 主题色薄雾 —— */
+[data-bg="photo"] {
+  --bg-layer:
+    radial-gradient(1000px 560px at 50% -12%, var(--glow-1), transparent 70%),
+    radial-gradient(760px 440px at 88% 6%, var(--glow-2), transparent 72%);
+}
+
+.bg-photo {
+  background-image: var(--photo-url, none);
+  background-size: cover;
+  background-position: center;
+  opacity: var(--photo-dim, 0.42);
+  transition: opacity 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 图片模式下盖一层底色，保证文字始终读得清 */
+[data-bg="photo"] .bg-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  opacity: 0;
+}
