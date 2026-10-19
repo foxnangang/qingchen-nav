@@ -39,7 +39,8 @@ if ($pass === '') {
     exit(1);
 }
 if (strlen($pass) < 8) {
-    fwrite(STDERR, "[autoinstall] QC_ADMIN_PASS 至少 8 位\n");
+    fwrite(STDERR, '[autoinstall] QC_ADMIN_PASS 只有 ' . strlen($pass)
+        . " 位，要求至少 8 位 —— 自动安装已跳过。请改掉它，或打开 /install.php 手动安装\n");
     exit(1);
 }
 if (!preg_match('/^[A-Za-z0-9_-]{3,32}$/', $user)) {
@@ -61,6 +62,11 @@ try {
     }
 
     echo "[autoinstall] 已创建 $user / {$title}\n";
+
+    // 用默认密码就提醒一句，省得有人一直不换
+    if ($pass === 'foxnan888') {
+        echo "[autoinstall] ⚠️  当前是默认密码 foxnan888 —— 装好后请立刻到后台「设置 → 修改密码」换掉\n";
+    }
 } catch (Throwable $e) {
     fwrite(STDERR, '[autoinstall] 失败：' . $e->getMessage() . "\n");
     exit(1);

@@ -1,7 +1,7 @@
 name: Docker
 
 # 打 tag 就自动构建多架构镜像并推到 GHCR
-#   git tag v1.1.0 && git push --tags
+#   git tag v1.1.1 && git push --tags
 # 也可以在 Actions 页面手动触发
 
 on:

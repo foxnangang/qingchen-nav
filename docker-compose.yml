@@ -1,11 +1,17 @@
 # 卿辰导航 — Docker Compose
 #
 # 用法：
-#   1. 把 QC_ADMIN_PASS 改成你自己的密码（至少 8 位，这是你自己定的管理员密码）
-#   2. docker compose up -d
-#   3. 打开 http://服务器IP:18090
+#   1. docker compose up -d        （默认密码 foxnan888，装好请务必改掉）
+#   2. 打开 http://服务器IP:18090
+#   3. 用 admin / foxnan888 登录，进「设置 → 修改密码」换成你自己的
 #
 # 为什么默认用 18090：玩 NAS 的人 8090 大多已经被别的服务占了。
+#
+# ⚠️ 关于 QC_ADMIN_PASS（管理员密码），四条规则：
+#   1. 至少 8 位。默认给的是 foxnan888 —— 只是让你贴完就能跑，请务必改掉
+#   2. 只在「第一次启动 + 还没有数据库」时生效，用它创建 admin 账号
+#   3. 已经装好之后再改这里没用！改密码请登录后台「设置 → 修改密码」
+#   4. 填了不足 8 位的密码，自动安装会被跳过，你会看到安装页而不是导航页
 #
 # 关于端口 "18090:80"：
 #   左边 18090 → 宿主机对外的端口，随便改（8090、9000、28080 都行）
@@ -18,7 +24,7 @@
 
 services:
   qcnav:
-    image: ghcr.io/foxnangang/qingchen-nav:1.1.0
+    image: ghcr.io/foxnangang/qingchen-nav:1.1.1
     container_name: qcnav
     ports:
       - "18090:80"
@@ -26,8 +32,8 @@ services:
       TZ: Asia/Shanghai
       QC_TITLE: 卿辰导航
       QC_ADMIN_USER: admin
-      # ↓ 改成你自己的密码（≥8 位）。只在第一次启动建库时生效
-      QC_ADMIN_PASS: "change-this-password"
+      # ⚠️ 至少 8 位，必须改。默认值只为了开箱能跑
+      QC_ADMIN_PASS: "foxnan888"
     volumes:
       # 数据目录。本地磁盘没问题（启动时会自动修正属主）；
       # 如果这里指向 SMB/NFS 网络挂载，改见 README「数据持久化」一节的 named volume 写法

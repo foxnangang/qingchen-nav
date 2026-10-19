@@ -164,13 +164,13 @@ location ~ ^/(lib|seed)\.php$ { return 404; }
 ```yaml
 services:
   qcnav:
-    image: ghcr.io/foxnangang/qingchen-nav:1.1.0
+    image: ghcr.io/foxnangang/qingchen-nav:1.1.1
     container_name: qcnav
     ports:
       - "18090:80"
     environment:
       TZ: Asia/Shanghai
-      QC_ADMIN_PASS: "换成你自己的密码"
+      QC_ADMIN_PASS: "foxnan888"   # ⚠️ 至少 8 位，装好后请改
     volumes:
       - ./data:/var/www/html/data
     restart: unless-stopped
@@ -181,6 +181,8 @@ services:
 ```bash
 docker compose up -d
 ```
+
+> 🔑 **默认账号是 `admin` / `foxnan888`**。这个默认值只是让你贴完就能跑，**装好请立刻到后台「设置 → 修改密码」换掉**。
 
 **关于端口写法**
 
@@ -223,19 +225,20 @@ docker run -d --name qcnav \
 
 自动安装完成后，容器里的 `install.php` 会被自动改名停用，不用手动删。
 
-**关于 `QC_ADMIN_PASS`**
+**关于 `QC_ADMIN_PASS`（管理员密码）**
 
-这是**你自己定的**管理员密码，不是镜像生成的：
+四条规则，看完能避开 90% 的坑：
 
-- 直接明文写在 compose 里，**至少 8 位**，建议字母 + 数字混排
-- 容器**第一次启动**时用它创建 `admin` 账号；之后打开 `/admin/` 就用这个密码登录
-- 整串建议加双引号，免得密码里的 `$`、`#`、`:` 被 YAML 吃掉
+| # | 规则 |
+|---|---|
+| 1 | **至少 8 位**，建议字母 + 数字混排。默认的 `foxnan888` 是 9 位，能跑，但请改掉 |
+| 2 | 只在**第一次启动、还没有数据库**时生效，用它创建 `admin` 账号 |
+| 3 | **已经装好之后再改这里没用** —— 改密码请登录后台「设置 → 修改密码」 |
+| 4 | 填了**不足 8 位**的密码，自动安装会跳过，你会看到安装页而不是导航页（页面顶部会写原因） |
 
-> ⚠️ 两个容易踩的坑：
-> - **改这个环境变量 ≠ 改密码**。数据库建好之后再改它不生效 —— 要改密码请登录后台「设置 → 修改密码」。
-> - **没有找回功能**。忘了只能手动改库，命令见下面「忘记密码怎么办」。
+整串建议加双引号，免得密码里的 `$`、`#`、`:` 被 YAML 吃掉。没想好密码可以用 `openssl rand -base64 12` 生成一串。
 
-没想好密码的话，可以用 `openssl rand -base64 12` 生成一串。
+> ⚠️ **没有找回功能**。忘了只能手动改库，命令见下面「忘记密码怎么办」。
 
 **数据持久化**
 

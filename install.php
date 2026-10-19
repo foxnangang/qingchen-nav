@@ -26,6 +26,20 @@ $done      = false;
 $dataDir = NAV_ROOT . '/data';
 $writable = is_dir($dataDir) ? is_writable($dataDir) : is_writable(NAV_ROOT);
 
+/*
+ * 环境变量预设了密码却没装成 —— 最常见的两种原因：不足 8 位、或写了但没生效。
+ * 这里给出明确提示，否则用户只会看到「怎么跳到安装页了」。
+ */
+$envPass  = getenv('QC_ADMIN_PASS');
+$envPass  = ($envPass === false) ? '' : trim($envPass);
+$envWarn  = '';
+if (!$installed && $envPass !== '') {
+    if (strlen($envPass) < 8) {
+        $envWarn = '检测到环境变量 QC_ADMIN_PASS，但只有 ' . strlen($envPass)
+                 . ' 位 —— 要求至少 8 位，所以自动安装没有执行。请改掉它，或直接在这里手动安装。';
+    }
+}
+
 if (!$installed && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $title  = trim((string) ($_POST['title'] ?? ''));
     $sub    = trim((string) ($_POST['subtitle'] ?? ''));
@@ -150,6 +164,10 @@ if (!$installed && $_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1 class="install-title">安装 卿辰导航</h1>
         <p class="install-sub">填好下面几项就能用了，1 分钟</p>
       </div>
+
+      <?php if ($envWarn !== ''): ?>
+        <div class="warn-box" style="margin:0 0 16px"><?= esc($envWarn) ?></div>
+      <?php endif; ?>
 
       <form method="post" autocomplete="off">
         <label class="field">
