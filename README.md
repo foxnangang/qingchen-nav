@@ -159,10 +159,40 @@ location ~ ^/(lib|seed)\.php$ { return 404; }
 
 **方式一：docker compose**
 
+把下面这段存成 `docker-compose.yml`（或者直接用仓库里那份，改一下密码）：
+
+```yaml
+services:
+  qcnav:
+    image: ghcr.io/foxnangang/qingchen-nav:1.1.0
+    container_name: qcnav
+    ports:
+      - "8090:80"
+    environment:
+      TZ: Asia/Shanghai
+      QC_ADMIN_PASS: "换成你自己的密码"
+    volumes:
+      - ./data:/var/www/html/data
+    restart: unless-stopped
+```
+
+然后：
+
 ```bash
-# 先改 docker-compose.yml 里的 QC_ADMIN_PASS 和端口
 docker compose up -d
 ```
+
+**关于端口写法**
+
+`"8090:80"` 是 `宿主机端口:容器端口`：
+
+| 写法 | 结果 |
+|---|---|
+| `"8090:80"` | ✅ 访问 `http://IP:8090` |
+| `"18090:80"` | ✅ 访问 `http://IP:18090`（左边随便改） |
+| `"18090:18090"` | ❌ 打不开 —— 容器里 Apache 只监听 80，没人听 18090 |
+
+一句话：**冒号左边随便改，右边永远留 `80`**。
 
 **方式二：docker run**
 
@@ -193,9 +223,20 @@ docker run -d --name qcnav \
 
 **数据持久化**
 
-`data/` 挂在 named volume 上。
+上面的 compose 把 `./data`（compose 文件同级的 data 目录）挂进容器。容器启动时会自动把属主修成 `www-data`，所以本地磁盘直接能用，数据也能在文件管理器里看到。
 
-> ⚠️ **不要换成 `./data` 绑定挂载**。容器里跑 Apache 的是 `www-data`（uid 33），和宿主机用户 uid 对不上，SQLite 会写不进去。用 named volume 由 Docker 托管就没这问题。
+> ⚠️ **如果 `./data` 指向的是 SMB / NFS 网络挂载**，容器改不了属主，SQLite 会写不进去（表现为页面能开、但保存站点报错）。这种情况换成 named volume：
+>
+> ```yaml
+> services:
+>   qcnav:
+>     # ...
+>     volumes:
+>       - qcnav-data:/var/www/html/data
+>
+> volumes:
+>   qcnav-data:
+> ```
 
 备份 / 恢复：
 
