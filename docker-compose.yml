@@ -1,14 +1,16 @@
 # 卿辰导航 — Docker Compose
 #
 # 用法：
-#   1. 把 QC_ADMIN_PASS 改成你自己的密码（≥8 位）
+#   1. 把 QC_ADMIN_PASS 改成你自己的密码（至少 8 位，这是你自己定的管理员密码）
 #   2. docker compose up -d
-#   3. 打开 http://服务器IP:8090
+#   3. 打开 http://服务器IP:18090
 #
-# 关于端口 "8090:80"：
-#   左边 8090 → 宿主机对外的端口，随便改（18090、9000 都行）
-#   右边 80   → 容器里 Apache 的端口，必须留 80
-#              改成 "18090:18090" 是错的，容器里没人监听 18090，会访问不到
+# 为什么默认用 18090：玩 NAS 的人 8090 大多已经被别的服务占了。
+#
+# 关于端口 "18090:80"：
+#   左边 18090 → 宿主机对外的端口，随便改（8090、9000、28080 都行）
+#   右边 80    → 容器里 Apache 的端口，必须留 80
+#               写成 "18090:18090" 是错的，容器里没人监听 18090，会打不开
 #
 # 想从源码自己构建，把 image 换成：
 #   build: .
@@ -19,12 +21,12 @@ services:
     image: ghcr.io/foxnangang/qingchen-nav:1.1.0
     container_name: qcnav
     ports:
-      - "8090:80"
+      - "18090:80"
     environment:
       TZ: Asia/Shanghai
       QC_TITLE: 卿辰导航
       QC_ADMIN_USER: admin
-      # 设了就在启动时自动装好；留空则打开网页用 install.php 手动装
+      # ↓ 改成你自己的密码（≥8 位）。只在第一次启动建库时生效
       QC_ADMIN_PASS: "change-this-password"
     volumes:
       # 数据目录。本地磁盘没问题（启动时会自动修正属主）；

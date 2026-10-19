@@ -7,7 +7,7 @@
 # 所以这里不需要 apt 装任何 PHP 扩展，镜像更小、构建更快。
 #
 # 构建：docker build -t qcnav .
-# 运行：docker run -d -p 8090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www/html/data qcnav
+# 运行：docker run -d -p 18090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www/html/data qcnav
 # ==========================================================================
 
 FROM php:8.2-apache

@@ -167,7 +167,7 @@ services:
     image: ghcr.io/foxnangang/qingchen-nav:1.1.0
     container_name: qcnav
     ports:
-      - "8090:80"
+      - "18090:80"
     environment:
       TZ: Asia/Shanghai
       QC_ADMIN_PASS: "换成你自己的密码"
@@ -184,21 +184,23 @@ docker compose up -d
 
 **关于端口写法**
 
-`"8090:80"` 是 `宿主机端口:容器端口`：
+`"18090:80"` 是 `宿主机端口:容器端口`：
 
 | 写法 | 结果 |
 |---|---|
-| `"8090:80"` | ✅ 访问 `http://IP:8090` |
-| `"18090:80"` | ✅ 访问 `http://IP:18090`（左边随便改） |
+| `"18090:80"` | ✅ 默认值，访问 `http://IP:18090` |
+| `"8090:80"` | ✅ 换别的端口也可以，访问 `http://IP:8090` |
 | `"18090:18090"` | ❌ 打不开 —— 容器里 Apache 只监听 80，没人听 18090 |
 
 一句话：**冒号左边随便改，右边永远留 `80`**。
+
+> 默认端口给到 **18090**，是因为玩 NAS 的人 8090 大多已经被别的服务占了。
 
 **方式二：docker run**
 
 ```bash
 docker run -d --name qcnav \
-  -p 8090:80 \
+  -p 18090:80 \
   -e QC_ADMIN_PASS='换成你自己的密码' \
   -e TZ=Asia/Shanghai \
   -v qcnav-data:/var/www/html/data \
@@ -206,7 +208,7 @@ docker run -d --name qcnav \
   ghcr.io/foxnangang/qingchen-nav:latest
 ```
 
-起来后打开 `http://服务器IP:8090`。
+起来后打开 `http://服务器IP:18090`。
 
 **环境变量**
 
@@ -220,6 +222,20 @@ docker run -d --name qcnav \
 | `TZ` | 否 | 时区，默认 `Asia/Shanghai` |
 
 自动安装完成后，容器里的 `install.php` 会被自动改名停用，不用手动删。
+
+**关于 `QC_ADMIN_PASS`**
+
+这是**你自己定的**管理员密码，不是镜像生成的：
+
+- 直接明文写在 compose 里，**至少 8 位**，建议字母 + 数字混排
+- 容器**第一次启动**时用它创建 `admin` 账号；之后打开 `/admin/` 就用这个密码登录
+- 整串建议加双引号，免得密码里的 `$`、`#`、`:` 被 YAML 吃掉
+
+> ⚠️ 两个容易踩的坑：
+> - **改这个环境变量 ≠ 改密码**。数据库建好之后再改它不生效 —— 要改密码请登录后台「设置 → 修改密码」。
+> - **没有找回功能**。忘了只能手动改库，命令见下面「忘记密码怎么办」。
+
+没想好密码的话，可以用 `openssl rand -base64 12` 生成一串。
 
 **数据持久化**
 
@@ -262,7 +278,7 @@ docker rm -f qcnav
 
 ```bash
 docker build -t qcnav .
-docker run -d -p 8090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www/html/data qcnav
+docker run -d -p 18090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www/html/data qcnav
 ```
 
 镜像约 **500 MB**（`php:8.2-apache` 基础镜像占绝大部分）。
