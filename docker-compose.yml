@@ -24,7 +24,7 @@
 
 services:
   qcnav:
-    image: ghcr.io/foxnangang/qingchen-nav:1.1.1
+    image: ghcr.io/foxnangang/qingchen-nav:1.1.2
     container_name: qcnav
     ports:
       - "18090:80"

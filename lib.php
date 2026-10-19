@@ -16,7 +16,7 @@ declare(strict_types=1);
 const NAV_ROOT    = __DIR__;
 const NAV_DB_PATH = NAV_ROOT . '/data/nav.db';
 const NAV_SESSION = 'qcnav_sid';
-const NAV_VERSION = '1.0.0';
+const NAV_VERSION = '1.0.2';
 
 /**
  * 程序的 URL 根路径，用于支持「装在子目录」。

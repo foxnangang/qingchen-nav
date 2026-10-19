@@ -3,8 +3,9 @@
 #
 # 职责：
 #   1. 保证 data 目录存在且 www-data 可写（volume 首次挂载时属主可能是 root）
-#   2. 设好 PHP 时区
-#   3. 若配置了 QC_ADMIN_PASS 且还没有数据库 → 无人值守自动安装
+#   2. 补 data/.htaccess（bind mount 会盖掉镜像里那份）
+#   3. 设好 PHP 时区
+#   4. 若配置了 QC_ADMIN_PASS 且还没有数据库 → 无人值守自动安装
 set -e
 
 DATA="/var/www/html/data"
@@ -12,6 +13,14 @@ DB="$DATA/nav.db"
 
 mkdir -p "$DATA/fav" 2>/dev/null || true
 chown -R www-data:www-data "$DATA" 2>/dev/null || true
+
+# 用 ./data bind mount 时宿主机空目录会盖掉镜像里的 .htaccess，这里补一份。
+# 真正的兜底是 Apache 配置里的 <Directory .../data> Require all denied，
+# 这条只是让 .htaccess 方案在非 Apache（nginx + php-fpm）下也成立。
+if [ ! -f "$DATA/.htaccess" ]; then
+    printf 'Require all denied\n' > "$DATA/.htaccess" 2>/dev/null || true
+    chown www-data:www-data "$DATA/.htaccess" 2>/dev/null || true
+fi
 
 # PHP 的时区不认系统 TZ，得写进 ini
 if [ -n "${TZ:-}" ]; then

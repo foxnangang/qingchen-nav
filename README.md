@@ -164,7 +164,7 @@ location ~ ^/(lib|seed)\.php$ { return 404; }
 ```yaml
 services:
   qcnav:
-    image: ghcr.io/foxnangang/qingchen-nav:1.1.1
+    image: ghcr.io/foxnangang/qingchen-nav:1.1.2
     container_name: qcnav
     ports:
       - "18090:80"
@@ -294,14 +294,14 @@ docker run -d -p 18090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www
 ```yaml
 services:
   qcnav:
-    image: ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.1   # 南大镜像站
+    image: ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.2   # 南大镜像站
 ```
 
 拉下来后想换回官方名字：
 
 ```bash
-docker tag ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.1 \
-           ghcr.io/foxnangang/qingchen-nav:1.1.1
+docker tag ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.2 \
+           ghcr.io/foxnangang/qingchen-nav:1.1.2
 ```
 
 > 镜像站是第三方反代，内容由 Docker 校验 digest，一般不会出问题；在意的话可以拉完用
