@@ -294,6 +294,26 @@ select.input {
   letter-spacing: 0.03em;
 }
 
+.side-ver {
+  display: block;
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: var(--muted);
+  text-align: center;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+  user-select: text;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Courier New", monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+  resize: vertical;
+}
+
 .side-link {
   display: block;
   width: 100%;

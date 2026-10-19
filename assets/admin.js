@@ -639,6 +639,8 @@
     $('setSubtitle').value = state.config.subtitle || '';
     $('setOwner').value = state.config.owner || '';
     $('setFooter').value = state.config.footer || '';
+    $('setCustomCss').value = state.config.custom_css || '';
+    $('setCustomJs').value = state.config.custom_js || '';
     $('setAccess').value = state.config.access || 'public';
     $('setPin').value = '';
     $('pwOld').value = '';
@@ -673,6 +675,8 @@
       bg_image: $('setBgImage').value.trim(),
       bg_dim: parseInt($('setBgDim').value, 10) || 0,
       footer: $('setFooter').value.trim(),
+      custom_css: $('setCustomCss').value,
+      custom_js: $('setCustomJs').value,
       access: $('setAccess').value
     }).then(function () {
       okEl.textContent = '设置已保存';

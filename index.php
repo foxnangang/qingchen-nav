@@ -32,6 +32,8 @@ $title   = nav_get('site_title', '站点导航');
 $sub     = nav_get('site_subtitle', '');
 $owner   = nav_get('owner', '');
 $footer  = nav_get('footer_note', '');
+$customCss = nav_get('custom_css', '');
+$customJs  = nav_get('custom_js', '');
 $ver     = NAV_VERSION;
 $base    = nav_base();
 
@@ -163,9 +165,16 @@ window.__CSRF__ = <?= json_encode($csrf) ?>;
   <span class="foot-line"></span>
   <span id="footStat"></span>
   <?php if ($footer !== ''): ?>
-  <span class="foot-dot">·</span><span><?= esc($footer) ?></span>
+  <span class="foot-dot">·</span><span><?= $footer /* 页脚内容，仅管理员可设置，允许 HTML */ ?></span>
   <?php endif; ?>
 </footer>
+
+<?php if ($customCss !== ''): ?>
+<style id="custom-css"><?= $customCss /* 管理员自定义 CSS */ ?></style>
+<?php endif; ?>
+<?php if ($customJs !== ''): ?>
+<script id="custom-js"><?= $customJs /* 管理员自定义 JS */ ?></script>
+<?php endif; ?>
 
 <script>window.__NAV__ = <?= json_encode($boot, $jsonFlags) ?>;</script>
 <script>window.__BASE__ = <?= json_encode($base) ?>;</script>

@@ -96,6 +96,7 @@ window.__LOGGED__ = false;
       <div class="side-stats" id="sideStats"></div>
       <a href="<?= $base ?>/" class="side-link" target="_blank" rel="noopener">← 返回前台</a>
       <button type="button" class="side-link danger" id="logoutBtn">退出登录</button>
+      <span class="side-ver">卿辰导航 v<?= NAV_VERSION ?></span>
     </div>
   </aside>
 
@@ -245,9 +246,18 @@ window.__LOGGED__ = false;
             <input type="text" id="setOwner" class="input" maxlength="20">
           </label>
           <label class="field">
-            <span class="field-label">页脚备注</span>
-            <input type="text" id="setFooter" class="input" maxlength="80" placeholder="可留空">
+            <span class="field-label">页脚内容（支持 HTML，可放备案号/链接等）</span>
+            <textarea id="setFooter" class="input" rows="2" maxlength="500" placeholder="例如：&lt;a href=&quot;https://beian.miit.gov.cn&quot;&gt;粤ICP备xxxxxx号&lt;/a&gt;"></textarea>
           </label>
+        </div>
+
+        <div class="field">
+          <span class="field-label">自定义 CSS（注入前台 &lt;style&gt;，可深度改样式）</span>
+          <textarea id="setCustomCss" class="input mono" rows="4" maxlength="20000" placeholder="例如：.card { border-radius: 16px; }"></textarea>
+        </div>
+        <div class="field">
+          <span class="field-label">自定义 JS（注入前台 &lt;script&gt;，可加统计代码等）</span>
+          <textarea id="setCustomJs" class="input mono" rows="4" maxlength="20000" placeholder="例如：console.log('hello')"></textarea>
         </div>
 
         <div class="field">

@@ -172,6 +172,8 @@ switch ($action) {
                 'bg_dim'   => nav_get('bg_dim', '42'),
                 'access'   => nav_get('access_mode'),
                 'footer'   => nav_get('footer_note'),
+                'custom_css' => nav_get('custom_css', ''),
+                'custom_js'  => nav_get('custom_js', ''),
                 'user'     => nav_get('admin_user'),
             ],
             'csrf'   => nav_csrf(),
@@ -351,7 +353,14 @@ switch ($action) {
             nav_set('owner', mb_substr(s($in, 'owner'), 0, 20, 'UTF-8'));
         }
         if (isset($in['footer'])) {
-            nav_set('footer_note', mb_substr(s($in, 'footer'), 0, 80, 'UTF-8'));
+            // 页脚内容允许 HTML（只有管理员能改），给 500 字
+            nav_set('footer_note', mb_substr(s($in, 'footer'), 0, 500, 'UTF-8'));
+        }
+        if (isset($in['custom_css'])) {
+            nav_set('custom_css', mb_substr(s($in, 'custom_css'), 0, 20000, 'UTF-8'));
+        }
+        if (isset($in['custom_js'])) {
+            nav_set('custom_js', mb_substr(s($in, 'custom_js'), 0, 20000, 'UTF-8'));
         }
         if (isset($in['theme']) && in_array($in['theme'], [
             'dark', 'light', 'chabai', 'forest', 'ocean', 'violet', 'mono', 'rose', 'terminal',
