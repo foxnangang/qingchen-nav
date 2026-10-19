@@ -153,6 +153,81 @@ location ~ ^/(lib|seed)\.php$ { return 404; }
 </Directory>
 ```
 
+### Docker（最省事，不用装 PHP）
+
+镜像自带 Apache + PHP 8.2，基础镜像已内置 `pdo_sqlite` / `curl` / `mbstring`，不用额外装扩展。
+
+**方式一：docker compose**
+
+```bash
+# 先改 docker-compose.yml 里的 QC_ADMIN_PASS 和端口
+docker compose up -d
+```
+
+**方式二：docker run**
+
+```bash
+docker run -d --name qcnav \
+  -p 8090:80 \
+  -e QC_ADMIN_PASS='换成你自己的密码' \
+  -e TZ=Asia/Shanghai \
+  -v qcnav-data:/var/www/html/data \
+  --restart unless-stopped \
+  ghcr.io/foxnangang/qingchen-nav:latest
+```
+
+起来后打开 `http://服务器IP:8090`。
+
+**环境变量**
+
+| 变量 | 必填 | 说明 |
+|---|---|---|
+| `QC_ADMIN_PASS` | 否 | **设了就在启动时自动装好**；留空则打开网页用 `install.php` 手动装 |
+| `QC_ADMIN_USER` | 否 | 管理员账号，默认 `admin` |
+| `QC_TITLE` | 否 | 站点标题，默认「卿辰导航」 |
+| `QC_SUBTITLE` | 否 | 副标题 |
+| `QC_OWNER` | 否 | 左上角署名 |
+| `TZ` | 否 | 时区，默认 `Asia/Shanghai` |
+
+自动安装完成后，容器里的 `install.php` 会被自动改名停用，不用手动删。
+
+**数据持久化**
+
+`data/` 挂在 named volume 上。
+
+> ⚠️ **不要换成 `./data` 绑定挂载**。容器里跑 Apache 的是 `www-data`（uid 33），和宿主机用户 uid 对不上，SQLite 会写不进去。用 named volume 由 Docker 托管就没这问题。
+
+备份 / 恢复：
+
+```bash
+# 备份
+docker run --rm -v qcnav-data:/data -v "$PWD":/backup alpine \
+  tar czf /backup/qcnav-backup.tar.gz -C /data .
+
+# 恢复
+docker run --rm -v qcnav-data:/data -v "$PWD":/backup alpine \
+  sh -c 'rm -rf /data/* && tar xzf /backup/qcnav-backup.tar.gz -C /data'
+```
+
+**升级**
+
+```bash
+docker pull ghcr.io/foxnangang/qingchen-nav:latest
+docker rm -f qcnav
+# 再用上面那条 run 命令重新起，数据在 volume 里不会丢
+```
+
+**自己构建**
+
+```bash
+docker build -t qcnav .
+docker run -d -p 8090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www/html/data qcnav
+```
+
+镜像约 **500 MB**（`php:8.2-apache` 基础镜像占绝大部分）。
+
+放在 Nginx/Caddy 反代后面也没问题：程序认 `X-Forwarded-Proto`，会自动给 session cookie 打上 `Secure`。
+
 ---
 
 ## 数据与备份

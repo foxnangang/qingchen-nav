@@ -233,6 +233,28 @@ function nav_all_settings(): array
  * 会话与认证
  * ======================================================================== */
 
+/**
+ * 判断当前请求是不是 HTTPS。
+ *
+ * 只看 $_SERVER['HTTPS'] 在反向代理后面会误判 —— 后端收到的是 http，
+ * 于是 session cookie 不会带 Secure 标记。容器化部署基本都在反代后面，
+ * 所以要认 X-Forwarded-Proto。
+ */
+function nav_is_https(): bool
+{
+    $https = strtolower((string) ($_SERVER['HTTPS'] ?? ''));
+    if ($https !== '' && $https !== 'off' && $https !== '0') {
+        return true;
+    }
+    if (strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https') {
+        return true;
+    }
+    if (strtolower((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')) === 'on') {
+        return true;
+    }
+    return (string) ($_SERVER['SERVER_PORT'] ?? '') === '443';
+}
+
 function nav_session(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
@@ -242,7 +264,7 @@ function nav_session(): void
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
-        'secure'   => !empty($_SERVER['HTTPS']),
+        'secure'   => nav_is_https(),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);

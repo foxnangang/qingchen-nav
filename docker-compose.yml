@@ -1,0 +1,30 @@
+# 卿辰导航 — Docker Compose
+#
+# 用法：
+#   1. 把 QC_ADMIN_PASS 改成你自己的密码（≥8 位）
+#   2. docker compose up -d
+#   3. 打开 http://服务器IP:8090
+#
+# 改端口就改下面 ports 冒号前面的数字（8090 被占用时换一个即可）。
+
+services:
+  qcnav:
+    build:
+      context: .
+    image: qcnav:local
+    container_name: qcnav
+    ports:
+      - "8090:80"
+    environment:
+      TZ: Asia/Shanghai
+      QC_TITLE: 卿辰导航
+      QC_ADMIN_USER: admin
+      # 设了就自动装好；留空则打开网页用 install.php 手动装
+      QC_ADMIN_PASS: "change-this-password"
+    volumes:
+      # named volume：别改成 ./data 绑定挂载，宿主机 uid 和容器 www-data 对不上会写不进去
+      - qcnav-data:/var/www/html/data
+    restart: unless-stopped
+
+volumes:
+  qcnav-data:

@@ -1,0 +1,17 @@
+# 构建上下文里不需要的东西
+.git
+.gitignore
+.gitattributes
+.github
+docs
+build-tmp
+*.zip
+
+# 运行时数据绝不进镜像
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/fav
+
+.DS_Store
+Thumbs.db
