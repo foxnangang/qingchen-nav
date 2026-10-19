@@ -344,6 +344,10 @@ window.__LOGGED__ = false;
           <button type="button" class="btn btn-ghost btn-sm2" id="updCheckBtn">检查更新</button>
         </div>
         <div id="updBox" class="upd-box" hidden></div>
+        <label class="field" style="margin-top:10px">
+          <span class="field-label">更新镜像（连不上 GitHub 时填）</span>
+          <input type="text" id="updMirror" class="input" placeholder="https://ghfast.top">
+        </label>
         <p class="hint">「立即升级」会从 GitHub 拉最新源码覆盖程序文件，<b>不碰 data/ 目录</b>（站点数据不受影响），覆盖前自动备份。Docker 部署也能用。</p>
       </section>
 

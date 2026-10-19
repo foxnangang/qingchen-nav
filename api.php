@@ -129,17 +129,28 @@ function nav_http_download(string $url, string $dest, int $timeout = 180): bool
  * - 覆盖前把被替换的文件备份到 data/_backup/<时间戳>/
  * - install.php 跳过（装完就被禁用了，不该被升级包复活）
  */
-function nav_self_update(string $tag): array
+function nav_self_update(string $tag, string $mirror = ''): array
 {
     $root = rtrim(NAV_ROOT, '/');
-    $url  = 'https://github.com/foxnangang/qingchen-nav/archive/refs/tags/' . $tag . '.tar.gz';
+
+    // GitHub 在国内时通时断，所以允许配镜像前缀（如 https://ghfast.top），
+    // 逐条重试：镜像（配了才试）→ GitHub 官方。
+    $bases = [];
+    if ($mirror !== '' && preg_match('#^https?://#i', $mirror)) $bases[] = rtrim($mirror, '/') . '/https://github.com';
+    $bases[] = 'https://github.com';
 
     $tmp = sys_get_temp_dir() . '/qcnav-upd-' . bin2hex(random_bytes(4));
     $tar = $tmp . '.tar.gz';
 
-    if (!nav_http_download($url, $tar)) {
+    $ok = false;
+    foreach ($bases as $base) {
+        $url = $base . '/foxnangang/qingchen-nav/archive/refs/tags/' . $tag . '.tar.gz';
+        if (nav_http_download($url, $tar, 40)) { $ok = true; break; }
         @unlink($tar);
-        return ['ok' => false, 'error' => '下载失败：连不上 GitHub 或网络超时'];
+    }
+    if (!$ok) {
+        @unlink($tar);
+        return ['ok' => false, 'error' => '下载失败：连不上 GitHub。可在「更新镜像」里填一个镜像地址（如 https://ghfast.top）后重试'];
     }
 
     try {
@@ -190,18 +201,17 @@ function nav_self_update(string $tag): array
         else $failed[] = $rel;
     }
 
-    // 清理临时文件 + 只保留最近 3 份备份
-    @unlink($tar);
-    nav_rmrf($tmp);
-    nav_prune_backups($root . '/data/_backup', 3);
-
-    // 读新版本号
+    // ⚠️ 先读新版本号再清临时目录 —— $src 就在 $tmp 里面，删了就读不到了
     $newVer = NAV_VERSION;
     $newLib = $src . '/lib.php';
     if (is_file($newLib) && preg_match("/const\s+NAV_VERSION\s*=\s*'([^']+)'/", (string) file_get_contents($newLib), $m)) {
         $newVer = $m[1];
     }
+
+    // 清理临时文件 + 只保留最近 3 份备份
+    @unlink($tar);
     nav_rmrf($tmp);
+    nav_prune_backups($root . '/data/_backup', 3);
 
     if ($failed) {
         return [
@@ -349,6 +359,7 @@ switch ($action) {
                 'footer'   => nav_get('footer_note'),
                 'custom_css' => nav_get('custom_css', ''),
                 'custom_js'  => nav_get('custom_js', ''),
+                'mirror'     => nav_get('update_mirror', ''),
                 'user'     => nav_get('admin_user'),
                 'version'  => NAV_VERSION,
             ],
@@ -538,6 +549,10 @@ switch ($action) {
         if (isset($in['custom_js'])) {
             nav_set('custom_js', mb_substr(s($in, 'custom_js'), 0, 20000, 'UTF-8'));
         }
+        if (isset($in['mirror'])) {
+            $m = trim(s($in, 'mirror'));
+            nav_set('update_mirror', preg_match('#^https?://#i', $m) ? rtrim($m, '/') : '');
+        }
         if (isset($in['theme']) && in_array($in['theme'], [
             'dark', 'light', 'chabai', 'forest', 'ocean', 'violet', 'mono', 'rose', 'terminal',
         ], true)) {
@@ -609,9 +624,21 @@ switch ($action) {
 
     case 'update_check':
         require_admin();
-        $raw = nav_http_get('https://api.github.com/repos/foxnangang/qingchen-nav/releases/latest', 15);
+        $in     = body();
+        $mirror = trim(s($in, 'mirror')) ?: nav_get('update_mirror', '');
+        $path   = '/repos/foxnangang/qingchen-nav/releases/latest';
+
+        $urls = [];
+        if ($mirror !== '' && preg_match('#^https?://#i', $mirror)) $urls[] = rtrim($mirror, '/') . '/https://api.github.com' . $path;
+        $urls[] = 'https://api.github.com' . $path;
+
+        $raw = '';
+        foreach ($urls as $u) {
+            $raw = nav_http_get($u, 12);
+            if ($raw !== '') break;
+        }
         if ($raw === '') {
-            json_out(['ok' => false, 'error' => '连不上 GitHub，请检查服务器出口网络（或稍后再试）'], 502);
+            json_out(['ok' => false, 'error' => '连不上 GitHub，请检查服务器出口网络，或在「更新镜像」里填镜像地址后重试'], 502);
         }
         $j = json_decode($raw, true);
         if (!is_array($j) || empty($j['tag_name'])) {
@@ -633,12 +660,14 @@ switch ($action) {
 
     case 'update_apply':
         require_admin();
-        $in  = body();
-        $tag = s($in, 'tag');
+        set_time_limit(180);
+        $in     = body();
+        $tag    = s($in, 'tag');
+        $mirror = trim(s($in, 'mirror')) ?: nav_get('update_mirror', '');
         if (!preg_match('/^v?\d+\.\d+\.\d+$/', $tag)) {
             json_out(['ok' => false, 'error' => '版本号不合法：' . $tag], 400);
         }
-        json_out(nav_self_update('v' . ltrim($tag, 'vV')));
+        json_out(nav_self_update('v' . ltrim($tag, 'vV'), $mirror));
         break;
 
     case 'export':

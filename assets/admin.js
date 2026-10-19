@@ -663,6 +663,7 @@
     $('setOwner').value = state.config.owner || '';
     $('setFooter').value = state.config.footer || '';
     $('updCur').textContent = 'v' + (state.config.version || '0.0.0');
+    $('updMirror').value = state.config.mirror || '';
     $('updBox').hidden = true;
     $('updBox').innerHTML = '';
     $('setCustomCss').value = state.config.custom_css || '';
@@ -700,6 +701,7 @@
       bg: picked.bg,
       bg_image: $('setBgImage').value.trim(),
       bg_dim: parseInt($('setBgDim').value, 10) || 0,
+      mirror: $('updMirror').value.trim(),
       footer: $('setFooter').value.trim(),
       custom_css: $('setCustomCss').value,
       custom_js: $('setCustomJs').value,
@@ -862,7 +864,7 @@
     box.hidden = false;
     box.innerHTML = '<span class="upd-muted">正在向 GitHub 查询最新版本…</span>';
 
-    req('update_check', {}).then(function (j) {
+    req('update_check', { mirror: $('updMirror').value.trim() }).then(function (j) {
       btn.disabled = false;
       btn.textContent = '检查更新';
       if (!j.ok) { box.innerHTML = '<span class="upd-err">' + (j.error || '检查失败') + '</span>'; return; }
@@ -884,7 +886,7 @@
         var go = $('updGoBtn');
         go.disabled = true;
         go.textContent = '升级中…';
-        req('update_apply', { tag: j.latest }).then(function (r) {
+        req('update_apply', { tag: j.latest, mirror: $('updMirror').value.trim() }).then(function (r) {
           if (!r.ok) {
             go.disabled = false;
             go.textContent = '重试升级';
