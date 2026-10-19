@@ -284,6 +284,29 @@ docker build -t qcnav .
 docker run -d -p 18090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www/html/data qcnav
 ```
 
+**国内拉取慢怎么办**
+
+`ghcr.io` 国内直连通常只有 1–2 MB/s，第一次拉大概要十几分钟。有两个办法：
+
+1. **等它拉完** —— 实际下载的是压缩层，约 200 MB（显示的 500 MB 是解压后体积）。Docker 有层缓存，以后升级只下变化的层，不会每次全量。
+2. **换镜像站**（快很多）：
+
+```yaml
+services:
+  qcnav:
+    image: ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.1   # 南大镜像站
+```
+
+拉下来后想换回官方名字：
+
+```bash
+docker tag ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.1 \
+           ghcr.io/foxnangang/qingchen-nav:1.1.1
+```
+
+> 镜像站是第三方反代，内容由 Docker 校验 digest，一般不会出问题；在意的话可以拉完用
+> `docker images --digests | grep qingchen-nav` 跟官方 digest 对一下。
+
 镜像约 **500 MB**（`php:8.2-apache` 基础镜像占绝大部分）。
 
 放在 Nginx/Caddy 反代后面也没问题：程序认 `X-Forwarded-Proto`，会自动给 session cookie 打上 `Secure`。
