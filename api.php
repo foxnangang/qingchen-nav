@@ -633,6 +633,7 @@ switch ($action) {
 
     case 'update_apply':
         require_admin();
+        $in  = body();
         $tag = s($in, 'tag');
         if (!preg_match('/^v?\d+\.\d+\.\d+$/', $tag)) {
             json_out(['ok' => false, 'error' => '版本号不合法：' . $tag], 400);
