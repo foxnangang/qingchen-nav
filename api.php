@@ -52,8 +52,13 @@ function i(array $a, string $k, int $def = 0): int
 
 function pin_ok(): bool
 {
-    // 留作兼容
-    return true;
+    nav_session();
+    if (!empty($_SESSION['nav_pin_ok'])) {
+        return true;
+    }
+    $cookie = $_COOKIE['qcnav_pin'] ?? '';
+    $hash   = nav_get('pin_hash', '');
+    return $cookie !== '' && $hash !== '' && hash_equals($hash, $cookie);
 }
 
 /* --------------------------------------------------------------------------
@@ -231,15 +236,6 @@ function nav_prune_backups(string $dir, int $keep): void
     rsort($all);
     foreach (array_slice($all, $keep) as $d) nav_rmrf($d);
 }
-    nav_session();
-    if (!empty($_SESSION['nav_pin_ok'])) {
-        return true;
-    }
-    $cookie = $_COOKIE['qcnav_pin'] ?? '';
-    $hash   = nav_get('pin_hash', '');
-    return $cookie !== '' && $hash !== '' && hash_equals($hash, $cookie);
-}
-
 /* ---------- 路由 ---------- */
 
 $action = (string) ($_GET['action'] ?? '');
