@@ -49,4 +49,13 @@ else
     echo "[qcnav] 已检测到数据库，跳过初始化"
 fi
 
+# 只要数据库已经存在，就停用 install.php。
+# 不能只在「本次自动安装成功」时停 —— 老用户升级重建容器时，镜像里的
+# install.php 会跟着回来，而上面走的是「跳过初始化」分支，就没人管它了。
+# （它本身有 $installed 判断，不会让你重装，但没必要把入口留在公网上。）
+if [ -f "$DB" ] && [ -f /var/www/html/install.php ]; then
+    mv /var/www/html/install.php /var/www/html/install.php.disabled
+    echo "[qcnav] install.php 已禁用"
+fi
+
 exec "$@"
