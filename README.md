@@ -164,7 +164,7 @@ location ~ ^/(lib|seed)\.php$ { return 404; }
 ```yaml
 services:
   qcnav:
-    image: ghcr.io/foxnangang/qingchen-nav:1.1.2
+    image: ghcr.io/foxnangang/qingchen-nav:latest
     container_name: qcnav
     ports:
       - "18090:80"
@@ -181,6 +181,17 @@ services:
 ```bash
 docker compose up -d
 ```
+
+#### 镜像标签怎么选
+
+| 标签 | 含义 | 适合 |
+|---|---|---|
+| `latest` | 始终最新 | **推荐**。以后升级只需 `docker compose pull && docker compose up -d`，或在 NAS 的 Docker 面板点「重新构建」 |
+| `1.1.2` | 锁死某个版本 | 想完全掌控升级时机 |
+| `1.1` | 锁死小版本线 | 只要补丁更新 |
+
+> ⚠️ 用固定版本号（如 `1.1.2`）时，**改版本号之前点多少次「重新构建」都不会升级** ——
+> 面板只会按 compose 里写的标签重新拉。想靠按钮升级就用 `latest`。
 
 > 🔑 **默认账号是 `admin` / `foxnan888`**。这个默认值只是让你贴完就能跑，**装好请立刻到后台「设置 → 修改密码」换掉**。
 
@@ -294,14 +305,14 @@ docker run -d -p 18090:80 -e QC_ADMIN_PASS='你的密码' -v qcnav-data:/var/www
 ```yaml
 services:
   qcnav:
-    image: ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.2   # 南大镜像站
+    image: ghcr.nju.edu.cn/foxnangang/qingchen-nav:latest   # 南大镜像站
 ```
 
 拉下来后想换回官方名字：
 
 ```bash
-docker tag ghcr.nju.edu.cn/foxnangang/qingchen-nav:1.1.2 \
-           ghcr.io/foxnangang/qingchen-nav:1.1.2
+docker tag ghcr.nju.edu.cn/foxnangang/qingchen-nav:latest \
+           ghcr.io/foxnangang/qingchen-nav:latest
 ```
 
 > 镜像站是第三方反代，内容由 Docker 校验 digest，一般不会出问题；在意的话可以拉完用
