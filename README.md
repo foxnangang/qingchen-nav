@@ -456,6 +456,36 @@ php -r 'require "lib.php"; nav_set("admin_hash", password_hash("你的新密码"
 
 ---
 
+## 开发与发布
+
+本仓库目前是**私有仓库**，改动只在本地与服务端之间流转，流程很短：
+
+```bash
+# 改完代码后，一条命令同步
+./bin/sync.sh                  # 自动生成提交信息
+./bin/sync.sh "fix: 修 xxx"    # 指定提交信息
+```
+
+脚本会做四件事：检查改动 → `git add -A` + commit → push（失败自动重试 3 次，本机到 GitHub 偶发 SSL EOF）
+→ 仍失败时打印兜底方案。工作区干净且没有待推送提交时直接退出，不会产生空提交。
+
+**发版**（打 tag 会触发 GitHub Actions 构建多架构镜像）：
+
+```bash
+# 先把 lib.php 里的 NAV_VERSION 改掉，README 更新日志补一行
+./bin/sync.sh "feat(v1.4.0): ..."
+git tag v1.4.0 && git push origin v1.4.0
+```
+
+**约定**
+
+| 事项 | 规则 |
+|---|---|
+| 版本号 | 只改 `lib.php` 的 `NAV_VERSION`，后台侧栏与更新检查都读它 |
+| 静态资源 | 改 `assets/` 后版本号必须跟着变（`?v=` 是缓存开关，现在是 5 分钟正缓存，忘了 bump 也会自愈但要等） |
+| `data/` | 永不入库（`.gitignore` 已挡），备份靠打包 `data/` |
+| 提交粒度 | 一个功能/一个修复一笔，别一次提交十个不相关的改动 |
+
 ## 更新日志
 
 | 版本 | 要点 |
