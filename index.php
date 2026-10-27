@@ -40,7 +40,7 @@ $base    = nav_base();
 // 只有 http(s) 的图片才允许进 CSS，防止 javascript: 之类
 $bgImageOk = $bgImage !== '' && preg_match('#^https?://#i', $bgImage) === 1;
 
-$jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP;
+$jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="<?= esc($theme) ?>" data-bg="<?= esc($bgStyle) ?>">
@@ -50,6 +50,24 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JS
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#0A0C0B">
+<script>
+/* 首屏渲染前就把本机保存的主题贴上去，避免浅色闪一下再跳深色（FOUC / CLS） */
+(function () {
+  try {
+    var P = { dark:'#090B0A', light:'#F7F5F0', chabai:'#F3F1E9', forest:'#081210',
+              ocean:'#060B14', violet:'#0A0714', mono:'#0B0B0B', rose:'#FBF5F2', terminal:'#04090A' };
+    var B = ['aurora','grid','dots','mesh','bamboo','paper','plain','photo'];
+    var d = document.documentElement;
+    var t = localStorage.getItem('qcnav_theme');
+    var b = localStorage.getItem('qcnav_bg');
+    if (t && P[t]) d.setAttribute('data-theme', t);
+    if (b && B.indexOf(b) !== -1) d.setAttribute('data-bg', b);
+    var m = document.querySelector('meta[name="theme-color"]');
+    var c = P[d.getAttribute('data-theme')];
+    if (m && c) m.setAttribute('content', c);
+  } catch (e) {}
+})();
+</script>
 <title><?= esc($title) ?><?= $sub !== '' ? ' · ' . esc($sub) : '' ?></title>
 <link rel="icon" type="image/svg+xml" href="<?= $base ?>/favicon.svg?v=<?= esc($ver) ?>">
 <link rel="alternate icon" href="<?= $base ?>/favicon.svg">
@@ -61,17 +79,16 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JS
 </head>
 <body>
 
-<!-- 背景层：图片层 + 图案层 + 噪点，营造深度 -->
+<!-- 键盘用户第一下 Tab 直接跳进站点列表 -->
+<a class="skip-link" href="#app">跳到站点列表</a>
+
+<!-- 背景层：图片层 + 图案层 + 噪点，营造深度（PIN 模式下复用同一层，别重复渲染） -->
 <div class="bg-photo" aria-hidden="true"></div>
 <div class="bg-glow" aria-hidden="true"></div>
 <div class="bg-grain" aria-hidden="true"></div>
 
 <?php if ($needPin): ?>
 <!-- ============ PIN 验证 ============ -->
-<div class="bg-photo" aria-hidden="true"></div>
-<div class="bg-glow" aria-hidden="true"></div>
-<div class="bg-grain" aria-hidden="true"></div>
-
 <div class="pin-screen">
   <div class="pin-card">
     <div class="pin-mark">◈</div>
@@ -82,7 +99,7 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JS
              autocomplete="current-password" inputmode="numeric">
       <button type="submit" class="pin-btn">进入</button>
     </form>
-    <p class="pin-err" id="pinErr"></p>
+    <p class="pin-err" id="pinErr" role="alert"></p>
   </div>
 </div>
 <script>
@@ -154,7 +171,7 @@ window.__CSRF__ = <?= json_encode($csrf) ?>;
 </header>
 
 <!-- ============ 主体 ============ -->
-<main class="wrap" id="app"></main>
+<main class="wrap" id="app" tabindex="-1"></main>
 
 <p class="empty" id="empty" hidden>
   <span class="empty-mark">◌</span>
@@ -168,6 +185,14 @@ window.__CSRF__ = <?= json_encode($csrf) ?>;
   <span class="foot-dot">·</span><span><?= $footer /* 页脚内容，仅管理员可设置，允许 HTML */ ?></span>
   <?php endif; ?>
 </footer>
+
+<!-- 回到顶部：滚过一屏才出现，点击平滑回顶 -->
+<button type="button" class="to-top" id="toTop" aria-label="回到顶部" title="回到顶部">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>
+  </svg>
+</button>
 
 <?php if ($customCss !== ''): ?>
 <style id="custom-css"><?= $customCss /* 管理员自定义 CSS */ ?></style>

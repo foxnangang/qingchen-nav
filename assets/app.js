@@ -116,6 +116,13 @@
   function currentTheme() { return htmlEl.getAttribute('data-theme'); }
   function currentBg() { return htmlEl.getAttribute('data-bg'); }
 
+  /** 后台是否配了背景图（--photo-url 由 PHP 内联注入） */
+  function photoReady() {
+    var v = '';
+    try { v = (getComputedStyle(htmlEl).getPropertyValue('--photo-url') || '').trim(); } catch (e) {}
+    return v !== '' && v !== 'none' && v.indexOf('url(') === 0;
+  }
+
   // 本机选择优先于后台默认值
   try {
     var savedT = localStorage.getItem('qcnav_theme');
@@ -134,12 +141,16 @@
   function markActive() {
     if (palEl) {
       Array.prototype.forEach.call(palEl.children, function (n) {
-        n.classList.toggle('is-on', n.getAttribute('data-k') === currentTheme());
+        var on = n.getAttribute('data-k') === currentTheme();
+        n.classList.toggle('is-on', on);
+        n.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
     }
     if (bgListEl) {
       Array.prototype.forEach.call(bgListEl.children, function (n) {
-        n.classList.toggle('is-on', n.getAttribute('data-k') === currentBg());
+        var on = n.getAttribute('data-k') === currentBg();
+        n.classList.toggle('is-on', on);
+        n.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
     }
   }
@@ -160,6 +171,8 @@
     });
 
     BACKDROPS.forEach(function (b) {
+      // 没在后台配背景图时，「图片」是个点了没反应的空功能，直接不显示
+      if (b.k === 'photo' && !photoReady()) return;
       var item = el('button', { type: 'button', class: 'tp-bg', 'data-k': b.k, 'data-bg': b.k }, [
         el('i'),
         document.createTextNode(b.n)
@@ -174,11 +187,29 @@
   function openPop(open) {
     if (!popEl) return;
     popEl.hidden = !open;
+    if (scrimEl) scrimEl.hidden = !open;
     var btn = document.getElementById('themeBtn');
     if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // 关闭时把焦点还给触发按钮，键盘用户不会掉到页面开头
+    if (!open && btn && document.activeElement && popEl.contains(document.activeElement)) btn.focus();
   }
 
+  // 遮罩：面板打开时挡住底下的卡片，点空白只关面板，不会再顺手打开链接
+  var scrimEl = el('button', {
+    type: 'button',
+    class: 'pop-scrim',
+    hidden: 'hidden',
+    'aria-label': '关闭主题面板',
+    tabindex: '-1'
+  });
+  scrimEl.addEventListener('click', function () { openPop(false); });
+  var heroEl = document.querySelector('.hero');
+  if (heroEl) heroEl.appendChild(scrimEl);
+
   buildPanel();
+
+  // 之前选了「图片」但后台没配图 → 回到服务端默认背景，避免停在一个空背景上
+  if (currentBg() === 'photo' && !photoReady()) applyBg(DEF_BG, false);
 
   var themeBtn = document.getElementById('themeBtn');
   if (themeBtn) {
@@ -278,21 +309,30 @@
 
     var host = '';
     var origin = '';
+    var port = '';
     try {
       var u = new URL(site.url);
       if (/^https?:$/.test(u.protocol)) {
         host = u.hostname;
         origin = u.origin;
+        port = u.port;
       }
     } catch (e) {}
 
-    var primary = site.icon || (host ? BASE + '/favicon.php?d=' + encodeURIComponent(host) : '');
+    // 非标准端口（h.example.com:1666 这类）代理取不到：favicon.php 只按域名走 80/443，
+    // 直接交给浏览器按 origin 去取（自带端口），否则必然 404。
+    var primary = site.icon
+      ? site.icon
+      : (port ? (origin + '/favicon.ico')
+              : (host ? BASE + '/favicon.php?d=' + encodeURIComponent(host) : ''));
     var direct = origin ? origin + '/favicon.ico' : '';
 
     if (!primary) return box;
 
     var img = new Image();
     img.alt = '';
+    img.width = 21;
+    img.height = 21;
     // ⚠️ 不能设 loading="lazy"：图片此时还未插入 DOM，lazy 会让浏览器
     // 等到进入视口才加载，而本函数要等 load 之后才把 img 放进 DOM —— 死锁。
     // 图标很小且服务端已缓存 30 天，无需懒加载。
@@ -308,7 +348,7 @@
 
     img.addEventListener('error', function () {
       // 代理没拿到 → 让浏览器直连试一次
-      if (!img.dataset.retry && direct && !site.icon) {
+      if (!img.dataset.retry && direct && !site.icon && primary !== direct) {
         img.dataset.retry = '1';
         img.src = direct;
         return;
@@ -329,8 +369,11 @@
       });
     }
 
+    // 保存文字节点，搜索高亮时原位替换（清除搜索要能还原）
+    var nameText = el('span', { text: site.name, style: 'overflow:hidden;text-overflow:ellipsis' });
+
     var nameRow = el('div', { class: 'card-name' }, [
-      el('span', { text: site.name, style: 'overflow:hidden;text-overflow:ellipsis' }),
+      nameText,
       badge
     ]);
 
@@ -360,23 +403,37 @@
       } catch (e) {}
     });
 
+    card.__fx = { name: nameText, descr: descr };
     return card;
   }
 
   function build() {
     if (!app) return;
 
-    groups.forEach(function (g, gi) {
+    groups.forEach(function (g) {
       var accent = g.accent || '#C9A227';
+      var secId = 'cat-' + g.id;
+
+      var countEl = el('span', { class: 'sec-count', text: String(g.sites.length).padStart(2, '0') });
 
       var head = el('div', { class: 'sec-head' }, [
-        el('span', { class: 'sec-bar', style: 'background:' + accent + ';box-shadow:0 0 12px -2px ' + accent }),
-        g.icon ? el('span', { class: 'sec-ico', text: g.icon }) : null,
-        el('span', { class: 'sec-name', text: g.name }),
-        el('span', { class: 'sec-count', text: String(g.sites.length).padStart(2, '0') })
+        el('span', { class: 'sec-bar', 'aria-hidden': 'true', style: 'background:' + accent + ';box-shadow:0 0 12px -2px ' + accent }),
+        g.icon ? el('span', { class: 'sec-ico', text: g.icon, 'aria-hidden': 'true' }) : null,
+        el('h2', { class: 'sec-name', id: secId + '-title', text: g.name }),
+        countEl
       ]);
 
       var grid = el('div', { class: 'grid' });
+
+      // 分类用 section + h2 + aria-labelledby，读屏能按标题跳转
+      var sec = el('section', {
+        class: 'sec',
+        id: secId,
+        'aria-labelledby': secId + '-title',
+        style: '--accent:' + accent
+      }, [head, grid]);
+
+      var cards = [];
 
       g.sites.forEach(function (s, si) {
         var card = cardNode(s, accent);
@@ -384,43 +441,53 @@
         card.style.setProperty('--accent', accent);
         grid.appendChild(card);
 
-        allCards.push({
+        var rec = {
           node: card,
-          sec: null,
-          hay: (
-            (s.name || '') + ' ' + (s.url || '') + ' ' +
-            (s.descr || '') + ' ' + ((s.tags || []).join(' '))
-          ).toLowerCase()
-        });
+          grid: grid,
+          countEl: countEl,
+          total: g.sites.length,
+          order: si,
+          score: 1,
+          rawName: s.name || '',
+          rawDescr: s.descr || '',
+          name: (s.name || '').toLowerCase(),
+          descr: (s.descr || '').toLowerCase(),
+          tags: (s.tags || []).join(' ').toLowerCase(),
+          url: (s.url || '').toLowerCase(),
+          hay: ((s.name || '') + ' ' + (s.url || '') + ' ' +
+                (s.descr || '') + ' ' + ((s.tags || []).join(' '))).toLowerCase()
+        };
+        cards.push(rec);
+        allCards.push(rec);
       });
 
-      var sec = el('section', {
-        class: 'sec',
-        id: 'cat-' + g.id,
-        style: '--accent:' + accent
-      }, [head, grid]);
-
       app.appendChild(sec);
-      allSecs.push({ node: sec, id: g.id, name: g.name, count: g.sites.length, icon: g.icon, accent: accent });
-
-      // 回填 section 引用
-      for (var i = allCards.length - g.sites.length; i < allCards.length; i++) {
-        allCards[i].sec = sec;
-      }
+      allSecs.push({
+        node: sec, id: g.id, name: g.name, count: g.sites.length,
+        icon: g.icon, accent: accent, cards: cards, grid: grid
+      });
     });
 
-    // 分类快捷标签
+    // 分类快捷标签（emoji 标记 aria-hidden，不读进链接名）
     if (chipsEl) {
       allSecs.forEach(function (s) {
-        var chip = el('a', {
-          class: 'chip',
-          href: '#cat-' + s.id
-        }, [
-          el('span', { text: (s.icon ? s.icon + ' ' : '') + s.name }),
-          el('span', { class: 'chip-n', text: String(s.count) })
+        var chip = el('a', { class: 'chip', href: '#cat-' + s.id }, [
+          el('span', {}, [
+            s.icon ? el('span', { text: s.icon + ' ', 'aria-hidden': 'true' }) : null,
+            document.createTextNode(s.name)
+          ]),
+          el('span', { class: 'chip-n', text: String(s.count), 'aria-hidden': 'true' })
         ]);
         chipsEl.appendChild(chip);
       });
+
+      // 搜索时 chips 原地换成「找到 N 个站点 · 清除」，高度不变，内容不上跳
+      chipsNote = el('div', { class: 'chips-note', hidden: 'hidden' }, [
+        el('span', {}, [document.createTextNode('找到 '), el('b', { text: '0' }), document.createTextNode(' 个站点')]),
+        el('button', { type: 'button', text: '清除' })
+      ]);
+      chipsNote.querySelector('button').addEventListener('click', function () { clearSearch(); });
+      chipsEl.appendChild(chipsNote);
     }
 
     if (footStat) {
@@ -432,52 +499,139 @@
   /* ------------------------------------------------------------------ 搜索 */
 
   var searchTimer = null;
+  var chipsNote = null;
+  var statusEl = null;
+  var lastBest = null;
 
+  function clearSearch() {
+    if (qEl) {
+      qEl.value = '';
+      qEl.focus();
+    }
+    doFilter('');
+  }
+
+  /** 把 text 里命中的 kw 包进 <mark>；kw 为空时还原纯文本 */
+  function markText(node, text, kw) {
+    if (!node) return;
+    node.textContent = '';
+    if (!kw) {
+      node.textContent = text;
+      return;
+    }
+    var lower = text.toLowerCase();
+    var at = lower.indexOf(kw);
+    if (at === -1) {
+      node.textContent = text;
+      return;
+    }
+    var from = 0;
+    while (at !== -1) {
+      if (at > from) node.appendChild(document.createTextNode(text.slice(from, at)));
+      var mk = document.createElement('mark');
+      mk.className = 'fx-hit';
+      mk.textContent = text.slice(at, at + kw.length);
+      node.appendChild(mk);
+      from = at + kw.length;
+      at = lower.indexOf(kw, from);
+    }
+    if (from < text.length) node.appendChild(document.createTextNode(text.slice(from)));
+  }
+
+  /** 打分：名称完全匹配 > 前缀 > 包含 > 标签 > 描述 > URL > 其它字段 */
+  function scoreOf(c, kw) {
+    if (!kw) return 1;
+    if (c.name === kw) return 100;
+    if (c.name.indexOf(kw) === 0) return 80;
+    if (c.name.indexOf(kw) !== -1) return 60;
+    if (c.tags.indexOf(kw) !== -1) return 50;
+    if (c.descr.indexOf(kw) !== -1) return 30;
+    if (c.url.indexOf(kw) !== -1) return 20;
+    if (c.hay.indexOf(kw) !== -1) return 10;
+    return 0;
+  }
+
+  function sortCards(sec, kw) {
+    sec.cards.slice().sort(function (a, b) {
+      if (kw) return (b.score - a.score) || (a.order - b.order);
+      return a.order - b.order;
+    }).forEach(function (c) { sec.grid.appendChild(c.node); });
+  }
+
+  /** 过滤 + 计数 + 排序 + 高亮；返回当前最佳结果（回车用） */
   function doFilter(q) {
     var kw = (q || '').trim().toLowerCase();
-    var visibleCount = 0;
+    var visible = 0;
+    var best = null;
+    var bestScore = -1;
 
     allCards.forEach(function (c) {
-      var hit = !kw || c.hay.indexOf(kw) !== -1;
-      c.node.style.display = hit ? '' : 'none';
-      if (hit) visibleCount++;
-    });
-
-    // 分类内无可见卡片则整块隐藏
-    allSecs.forEach(function (s) {
-      var inner = s.node.querySelectorAll('.card');
-      var any = false;
-      for (var i = 0; i < inner.length; i++) {
-        if (inner[i].style.display !== 'none') { any = true; break; }
+      var sc = scoreOf(c, kw);
+      c.score = sc;
+      c.node.style.display = sc ? '' : 'none';
+      markText(c.node.__fx.name, c.rawName, kw);
+      if (c.node.__fx.descr) markText(c.node.__fx.descr, c.rawDescr, kw);
+      if (sc) {
+        visible++;
+        if (sc > bestScore) {
+          bestScore = sc;
+          best = c.node;
+        }
       }
-      s.node.style.display = any ? '' : 'none';
     });
 
-    if (emptyEl) emptyEl.hidden = visibleCount !== 0;
-    if (chipsEl) chipsEl.style.display = kw ? 'none' : '';
+    allSecs.forEach(function (s) {
+      var shown = 0;
+      s.cards.forEach(function (c) { if (c.score) shown++; });
+      s.node.style.display = shown ? '' : 'none';
+      var cnt = s.cards.length ? s.cards[0].countEl : null;
+      if (cnt) {
+        cnt.textContent = kw
+          ? String(shown).padStart(2, '0') + ' / ' + String(s.cards.length).padStart(2, '0')
+          : String(s.cards.length).padStart(2, '0');
+      }
+      sortCards(s, kw);
+    });
+
+    if (emptyEl) emptyEl.hidden = visible !== 0;
+
+    if (chipsEl) {
+      chipsEl.classList.toggle('is-filtered', !!kw);
+      if (chipsNote) {
+        chipsNote.hidden = !kw;
+        var num = chipsNote.querySelector('b');
+        if (num) num.textContent = String(visible);
+      }
+    }
+
+    if (statusEl) statusEl.textContent = kw ? ('找到 ' + visible + ' 个站点') : '';
+    if (clearBtn) clearBtn.hidden = !kw;
+
+    lastBest = best;
+    return best;
   }
+
+  // 清空按钮（原生 search 的 cancel 被 CSS 隐藏了，移动端只能一个个退格）
+  var clearBtn = null;
+  if (qEl) {
+    var shell = qEl.parentNode;
+    clearBtn = el('button', {
+      type: 'button', class: 'search-clear', 'aria-label': '清空搜索', title: '清空搜索',
+      hidden: 'hidden', text: '×'
+    });
+    clearBtn.addEventListener('click', clearSearch);
+    shell.appendChild(clearBtn);
+  }
+
+  // 读屏用的实时播报区
+  statusEl = el('p', { class: 'sr-only', role: 'status', 'aria-live': 'polite' });
+  document.body.appendChild(statusEl);
 
   if (qEl) {
     qEl.addEventListener('input', function () {
       clearTimeout(searchTimer);
       var v = qEl.value;
       searchTimer = setTimeout(function () { doFilter(v); }, 70);
-    });
-
-    qEl.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        qEl.value = '';
-        doFilter('');
-        qEl.blur();
-      }
-      // 回车跳到第一个可见结果
-      if (e.key === 'Enter') {
-        var first = null;
-        for (var i = 0; i < allCards.length; i++) {
-          if (allCards[i].node.style.display !== 'none') { first = allCards[i].node; break; }
-        }
-        if (first && first.href) window.open(first.href, '_blank', 'noopener');
-      }
     });
   }
 
@@ -487,30 +641,46 @@
     var tag = (e.target && e.target.tagName) || '';
     var typing = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable);
 
+    // Esc：先关面板，再清搜索
+    if (e.key === 'Escape') {
+      if (popEl && !popEl.hidden) { openPop(false); return; }
+      if (qEl && qEl.value) { clearSearch(); return; }
+    }
+
+    // 焦点在输入框里时不抢按键（否则输入 t / 回车会误触）
+    if (typing) return;
+
     // "/" 聚焦搜索
-    if (e.key === '/' && !typing) {
+    if (e.key === '/') {
       e.preventDefault();
       if (qEl) qEl.focus();
       return;
     }
     // "T" 循环切换配色
-    if ((e.key === 't' || e.key === 'T') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && !e.altKey) {
       var idx = 0;
       for (var pi = 0; pi < PALETTES.length; pi++) {
         if (PALETTES[pi].k === currentTheme()) { idx = pi; break; }
       }
       applyTheme(PALETTES[(idx + 1) % PALETTES.length].k);
-      return;
-    }
-    // "Esc"：先关主题面板，再清空搜索
-    if (e.key === 'Escape') {
-      if (popEl && !popEl.hidden) { openPop(false); return; }
-      if (qEl && qEl.value) {
-        qEl.value = '';
-        doFilter('');
-      }
     }
   });
+
+  // 搜索框里回车：打开得分最高的那个，而不是 DOM 里第一个
+  if (qEl) {
+    qEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var target = lastBest || null;
+        if (!target) {
+          for (var i = 0; i < allCards.length; i++) {
+            if (allCards[i].node.style.display !== 'none') { target = allCards[i].node; break; }
+          }
+        }
+        if (target && target.href) window.open(target.href, '_blank', 'noopener');
+      }
+    });
+  }
 
   // 触屏设备不显示 "/" 提示
   if (kbdEl && window.matchMedia && window.matchMedia('(hover: none)').matches) {

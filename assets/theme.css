@@ -54,11 +54,11 @@
   --border-hi:     rgba(26, 29, 27, 0.2);
   --text:          #1A1D1B;
   --text-soft:     #3E4642;
-  --muted:         #6E7672;
+  --muted:         #6D7571;
   --gold:          #A8841A;
   --gold-soft:     rgba(168, 132, 26, 0.12);
   --teal:          #3F7D6C;
-  --danger:        #C05252;
+  --danger:        #BC5050;
   --danger-soft:   rgba(192, 82, 82, 0.1);
   --icon-bg:       rgba(26, 29, 27, 0.05);
   --shadow:        0 18px 40px -22px rgba(26, 29, 27, 0.28);
@@ -69,7 +69,7 @@
   --bamboo-line:   rgba(26, 29, 27, 0.05);
   --grain-op:      0.018;
   --meta-color:    #F7F5F0;
-  --on-gold:       #FFFFFF;
+  --on-gold:       #1A1D1B;
   color-scheme:    light;
 }
 
@@ -84,7 +84,7 @@
   --border-hi:     rgba(255, 255, 255, 0.18);
   --text:          #E2EDE8;
   --text-soft:     #A9BDB4;
-  --muted:         #6F8478;
+  --muted:         #768A7F;
   --gold:          #7FBFA9;
   --gold-soft:     rgba(127, 191, 169, 0.15);
   --teal:          #9ED9C0;
@@ -111,7 +111,7 @@
   --border-hi:     rgba(255, 255, 255, 0.19);
   --text:          #E3EBF7;
   --text-soft:     #A8B6CC;
-  --muted:         #6B7B94;
+  --muted:         #74839A;
   --gold:          #6EA8F0;
   --gold-soft:     rgba(110, 168, 240, 0.15);
   --teal:          #67D2D8;
@@ -138,7 +138,7 @@
   --border-hi:     rgba(255, 255, 255, 0.2);
   --text:          #ECE8FA;
   --text-soft:     #B7AED0;
-  --muted:         #7B7196;
+  --muted:         #847B9D;
   --gold:          #A78BFA;
   --gold-soft:     rgba(167, 139, 250, 0.16);
   --teal:          #7DD3FC;
@@ -165,7 +165,7 @@
   --border-hi:     rgba(255, 255, 255, 0.22);
   --text:          #F0F0F0;
   --text-soft:     #B8B8B8;
-  --muted:         #7A7A7A;
+  --muted:         #818181;
   --gold:          #EDEDED;
   --gold-soft:     rgba(255, 255, 255, 0.1);
   --teal:          #A8A8A8;
@@ -196,7 +196,7 @@
   --gold:          #C4717A;
   --gold-soft:     rgba(196, 113, 122, 0.13);
   --teal:          #6FA898;
-  --danger:        #C4525C;
+  --danger:        #A55F66;
   --danger-soft:   rgba(196, 82, 92, 0.1);
   --icon-bg:       rgba(45, 30, 34, 0.05);
   --shadow:        0 18px 40px -22px rgba(72, 45, 50, 0.24);
@@ -207,7 +207,7 @@
   --bamboo-line:   rgba(45, 30, 34, 0.05);
   --grain-op:      0.016;
   --meta-color:    #FBF5F2;
-  --on-gold:       #FFFFFF;
+  --on-gold:       #1A1D1B;
   color-scheme:    light;
 }
 
@@ -222,11 +222,11 @@
   --border-hi:     rgba(38, 48, 40, 0.2);
   --text:          #232923;   /* 墨绿黑 */
   --text-soft:     #45503F;
-  --muted:         #77806F;
+  --muted:         #6C7465;
   --gold:          #3E6B52;   /* 墨绿主色 */
   --gold-soft:     rgba(62, 107, 82, 0.13);
   --teal:          #4F7A5E;   /* 竹青 */
-  --danger:        #B5695F;   /* 陶土红 */
+  --danger:        #A35E56;   /* 陶土红 */
   --danger-soft:   rgba(181, 105, 95, 0.1);
   --icon-bg:       rgba(38, 48, 40, 0.045);
   --shadow:        0 18px 40px -22px rgba(40, 52, 44, 0.24);
