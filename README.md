@@ -458,7 +458,7 @@ php -r 'require "lib.php"; nav_set("admin_hash", password_hash("你的新密码"
 
 ## 开发与发布
 
-本仓库目前是**私有仓库**，改动只在本地与服务端之间流转，流程很短：
+本仓库已开源（MIT），主分支保持可运行状态，欢迎提 Issue / PR：
 
 ```bash
 # 改完代码后，一条命令同步
