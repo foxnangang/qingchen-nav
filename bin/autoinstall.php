@@ -64,8 +64,8 @@ try {
     echo "[autoinstall] 已创建 $user / {$title}\n";
 
     // 用默认密码就提醒一句，省得有人一直不换
-    if ($pass === 'foxnan888') {
-        echo "[autoinstall] ⚠️  当前是默认密码 foxnan888 —— 装好后请立刻到后台「设置 → 修改密码」换掉\n";
+    if ($pass === 'nav-admin-2026') {
+        echo "[autoinstall] ⚠️  当前是默认密码 nav-admin-2026 —— 装好后请立刻到后台「设置 → 修改密码」换掉\n";
     }
 } catch (Throwable $e) {
     fwrite(STDERR, '[autoinstall] 失败：' . $e->getMessage() . "\n");

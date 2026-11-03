@@ -93,6 +93,7 @@ window.__LOGGED__ = false;
 
     <div class="side-foot">
       <button type="button" class="btn btn-ghost btn-block" id="newCatBtn">＋ 新建分类</button>
+      <button type="button" class="btn btn-ghost btn-block" id="sideSettingsBtn">⚙ 站点设置</button>
       <div class="side-stats" id="sideStats"></div>
       <a href="<?= $base ?>/" class="side-link" target="_blank" rel="noopener">← 返回前台</a>
       <button type="button" class="side-link danger" id="logoutBtn">退出登录</button>
@@ -110,7 +111,7 @@ window.__LOGGED__ = false;
       </div>
       <div class="main-actions">
         <input type="search" id="filter" class="input input-sm" placeholder="筛选…">
-        <button type="button" class="btn btn-ghost" id="settingsBtn">设置</button>
+        <button type="button" class="btn btn-ghost" id="settingsBtn">⚙ 站点设置</button>
         <button type="button" class="btn btn-primary" id="newSiteBtn">＋ 新增站点</button>
       </div>
     </header>
@@ -219,142 +220,221 @@ window.__LOGGED__ = false;
   </div>
 </div>
 
-<!-- ==================== 设置弹窗 ==================== -->
+<!-- ==================== 站点设置弹窗（左导航 + 右内容） ==================== -->
 <div class="modal-mask" id="setModal" hidden>
-  <div class="modal">
+  <div class="modal modal-set">
     <header class="modal-head">
-      <h2>站点设置</h2>
-      <button type="button" class="modal-x" data-close="setModal">×</button>
+      <div class="set-head-title">
+        <h2>站点设置</h2>
+        <small>左侧选分区，右侧改内容</small>
+      </div>
+      <button type="button" class="modal-x" data-close="setModal" aria-label="关闭">×</button>
     </header>
-    <div class="modal-body">
 
-      <section class="set-sec">
-        <h3 class="set-h">外观</h3>
-        <div class="grid2">
-          <label class="field">
-            <span class="field-label">站点标题</span>
-            <input type="text" id="setTitle" class="input" maxlength="30">
-          </label>
-          <label class="field">
-            <span class="field-label">副标题</span>
-            <input type="text" id="setSubtitle" class="input" maxlength="60">
-          </label>
-        </div>
-        <div class="grid2">
-          <label class="field">
-            <span class="field-label">署名（左上角）</span>
-            <input type="text" id="setOwner" class="input" maxlength="20">
-          </label>
-          <label class="field">
-            <span class="field-label">页脚内容（支持 HTML，可放备案号/链接等）</span>
-            <textarea id="setFooter" class="input" rows="2" maxlength="500" placeholder="例如：&lt;a href=&quot;https://beian.miit.gov.cn&quot;&gt;粤ICP备xxxxxx号&lt;/a&gt;"></textarea>
-          </label>
-        </div>
+    <div class="set-layout">
+      <!-- 左侧分区导航 -->
+      <nav class="set-nav" id="setNav" aria-label="设置分区">
+        <button type="button" class="set-nav-item active" data-panel="p-look">
+          <span class="set-nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg></span>
+          <span class="set-nav-txt">外观</span>
+          <span class="set-nav-hint" id="hintLook">—</span>
+        </button>
+        <button type="button" class="set-nav-item" data-panel="p-access">
+          <span class="set-nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+          <span class="set-nav-txt">访问控制</span>
+          <span class="set-nav-hint" id="hintAccess">—</span>
+        </button>
+        <button type="button" class="set-nav-item" data-panel="p-secure">
+          <span class="set-nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="12" r="4"/><path d="M12.5 12H21m-3 0v3m-2-3v2.5"/></svg></span>
+          <span class="set-nav-txt">账号安全</span>
+          <span class="set-nav-hint" id="hintSecure">—</span>
+        </button>
+        <button type="button" class="set-nav-item" data-panel="p-data">
+          <span class="set-nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+          <span class="set-nav-txt">数据</span>
+          <span class="set-nav-hint" id="hintData">—</span>
+        </button>
+        <button type="button" class="set-nav-item" data-panel="p-upd">
+          <span class="set-nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5v5h-5"/></svg></span>
+          <span class="set-nav-txt">版本与更新</span>
+          <span class="set-nav-hint" id="hintUpd">—</span>
+        </button>
+      </nav>
 
-        <div class="field">
-          <span class="field-label">自定义 CSS（注入前台 &lt;style&gt;，可深度改样式）</span>
-          <textarea id="setCustomCss" class="input mono" rows="4" maxlength="20000" placeholder="例如：.card { border-radius: 16px; }"></textarea>
-        </div>
-        <div class="field">
-          <span class="field-label">自定义 JS（注入前台 &lt;script&gt;，可加统计代码等）</span>
-          <textarea id="setCustomJs" class="input mono" rows="4" maxlength="20000" placeholder="例如：console.log('hello')"></textarea>
-        </div>
+      <!-- 右侧内容 -->
+      <div class="set-content" id="setContent">
 
-        <div class="field">
-          <span class="field-label">默认配色（访客首次访问看到的样子）</span>
-          <div class="pick-row" id="pickPalette"></div>
-        </div>
-
-        <div class="field">
-          <span class="field-label">背景样式</span>
-          <div class="pick-row pick-row-bg" id="pickBg"></div>
-        </div>
-
-        <div class="grid2">
-          <label class="field">
-            <span class="field-label">背景图 URL（选「图片」时生效）</span>
-            <input type="text" id="setBgImage" class="input" placeholder="https://example.com/bg.jpg">
-          </label>
-          <label class="field">
-            <span class="field-label">图片浓度 <b class="dim-val" id="dimVal">42%</b></span>
-            <input type="range" id="setBgDim" class="range" min="0" max="100" step="4" value="42">
-          </label>
-        </div>
-        <p class="hint">访客在本机手动选过的主题会覆盖这里的默认值；「恢复默认」按钮可清掉。</p>
-      </section>
-
-      <section class="set-sec">
-        <h3 class="set-h">访问控制</h3>
-        <label class="field">
-          <span class="field-label">前台访问方式</span>
-          <select id="setAccess" class="input">
-            <option value="public">公开访问（仅靠域名隐私）</option>
-            <option value="pin">访问码保护（首次输入，记住 30 天）</option>
-          </select>
-        </label>
-        <div class="grid2">
-          <label class="field">
-            <span class="field-label">设置访问码（至少 4 位）</span>
-            <input type="password" id="setPin" class="input" placeholder="留空则不修改" autocomplete="new-password">
-          </label>
-          <div class="field field-btn">
-            <button type="button" class="btn btn-ghost" id="pinSaveBtn">保存访问码</button>
+        <!-- ---------- 外观 ---------- -->
+        <section class="set-panel" id="p-look">
+          <div class="set-panel-head">
+            <h3>外观</h3>
+            <p>站点标题、访客配色、背景与前台展示细节</p>
           </div>
-        </div>
-        <p class="hint">提示：切到「访问码保护」前必须先设好访问码，否则会被锁在外面。</p>
-      </section>
 
-      <section class="set-sec">
-        <h3 class="set-h">修改登录密码</h3>
-        <div class="grid2">
-          <label class="field">
-            <span class="field-label">当前密码</span>
-            <input type="password" id="pwOld" class="input" autocomplete="current-password">
-          </label>
-          <label class="field">
-            <span class="field-label">新密码（至少 8 位）</span>
-            <input type="password" id="pwNew" class="input" autocomplete="new-password">
-          </label>
-        </div>
-        <div class="grid2">
-          <label class="field">
-            <span class="field-label">用户名</span>
-            <input type="text" id="pwUser" class="input" maxlength="32">
-          </label>
-          <div class="field field-btn">
-            <button type="button" class="btn btn-ghost" id="pwSaveBtn">修改密码</button>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">站点标题</span>
+              <input type="text" id="setTitle" class="input" maxlength="30">
+            </label>
+            <label class="field">
+              <span class="field-label">副标题</span>
+              <input type="text" id="setSubtitle" class="input" maxlength="60">
+            </label>
           </div>
-        </div>
-      </section>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">署名（左上角）</span>
+              <input type="text" id="setOwner" class="input" maxlength="20">
+            </label>
+            <label class="field">
+              <span class="field-label">页脚内容（支持 HTML，可放备案号/链接等）</span>
+              <textarea id="setFooter" class="input" rows="2" maxlength="500" placeholder="例如：&lt;a href=&quot;https://beian.miit.gov.cn&quot;&gt;粤ICP备xxxxxx号&lt;/a&gt;"></textarea>
+            </label>
+          </div>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">每行卡片数</span>
+              <select id="setCardCols" class="input">
+                <option value="0">自动（按屏幕宽度）</option>
+                <option value="4">4 个</option>
+                <option value="5">5 个</option>
+                <option value="6">6 个</option>
+                <option value="7">7 个</option>
+                <option value="8">8 个</option>
+              </select>
+              <span class="field-tip">宽屏按此列数排布，窄屏自动降列</span>
+            </label>
+            <div class="field">
+              <span class="field-label">样式微调</span>
+              <div class="field-tip">卡片圆角、间距等外观细节，可在下方「自定义 CSS」里改，例如 <code>.card{border-radius:16px}</code></div>
+            </div>
+          </div>
 
-      <section class="set-sec">
-        <h3 class="set-h">数据</h3>
-        <div class="data-ops">
-          <button type="button" class="btn btn-ghost" id="exportBtn">导出 JSON</button>
-          <label class="btn btn-ghost" for="importFile">导入 JSON</label>
-          <input type="file" id="importFile" accept=".json,application/json" hidden>
-        </div>
-        <p class="hint">导入按「分类名 + 站点名」去重，不会产生重复项；不存在的分类会自动创建。</p>
-      </section>
+          <h4 class="set-sub">访客配色与背景</h4>
+          <div class="field">
+            <span class="field-label">默认配色（访客首次访问看到的样子）</span>
+            <div class="pick-row" id="pickPalette"></div>
+          </div>
+          <div class="field">
+            <span class="field-label">背景样式</span>
+            <div class="pick-row pick-row-bg" id="pickBg"></div>
+          </div>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">背景图 URL（选「图片」时生效）</span>
+              <input type="text" id="setBgImage" class="input" placeholder="https://example.com/bg.jpg">
+            </label>
+            <label class="field">
+              <span class="field-label">图片浓度 <b class="dim-val" id="dimVal">42%</b></span>
+              <input type="range" id="setBgDim" class="range" min="0" max="100" step="4" value="42">
+            </label>
+          </div>
+          <p class="hint">访客在本机手动选过的主题会覆盖这里的默认值；「恢复默认」按钮可清掉。</p>
 
-      <section class="set-sec">
-        <h3 class="set-h">版本与更新</h3>
-        <div class="upd-row">
-          <span class="upd-cur">当前版本 <b id="updCur">—</b></span>
-          <button type="button" class="btn btn-ghost btn-sm2" id="updCheckBtn">检查更新</button>
-        </div>
-        <div id="updBox" class="upd-box" hidden></div>
-        <label class="field" style="margin-top:10px">
-          <span class="field-label">更新镜像（连不上 GitHub 时填）</span>
-          <input type="text" id="updMirror" class="input" placeholder="https://ghfast.top">
-        </label>
-        <p class="hint">「立即升级」会从 GitHub 拉最新源码覆盖程序文件，<b>不碰 data/ 目录</b>（站点数据不受影响），覆盖前自动备份。Docker 部署也能用。</p>
-      </section>
+          <h4 class="set-sub">自定义代码</h4>
+          <div class="field">
+            <span class="field-label">自定义 CSS（注入前台 &lt;style&gt;，可深度改样式）</span>
+            <textarea id="setCustomCss" class="input mono" rows="4" maxlength="20000" placeholder="例如：.card { border-radius: 16px; }"></textarea>
+          </div>
+          <div class="field">
+            <span class="field-label">自定义 JS（注入前台 &lt;script&gt;，可加统计代码等）</span>
+            <textarea id="setCustomJs" class="input mono" rows="4" maxlength="20000" placeholder="例如：console.log('hello')"></textarea>
+          </div>
+        </section>
 
-      <p class="form-err" id="setErr"></p>
-      <p class="form-ok" id="setOk"></p>
+        <!-- ---------- 访问控制 ---------- -->
+        <section class="set-panel" id="p-access" hidden>
+          <div class="set-panel-head">
+            <h3>访问控制</h3>
+            <p>前台是否需要访问码，以及访问码怎么改</p>
+          </div>
+          <label class="field">
+            <span class="field-label">前台访问方式</span>
+            <select id="setAccess" class="input">
+              <option value="public">公开访问（仅靠域名隐私）</option>
+              <option value="pin">访问码保护（首次输入，记住 30 天）</option>
+            </select>
+          </label>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">设置访问码（至少 4 位）</span>
+              <input type="password" id="setPin" class="input" placeholder="留空则不修改" autocomplete="new-password">
+            </label>
+            <div class="field field-btn">
+              <button type="button" class="btn btn-ghost" id="pinSaveBtn">保存访问码</button>
+            </div>
+          </div>
+          <p class="hint">提示：切到「访问码保护」前必须先设好访问码，否则会被锁在外面。</p>
+        </section>
+
+        <!-- ---------- 账号安全 ---------- -->
+        <section class="set-panel" id="p-secure" hidden>
+          <div class="set-panel-head">
+            <h3>账号安全</h3>
+            <p>修改后台登录用户名与密码</p>
+          </div>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">当前密码</span>
+              <input type="password" id="pwOld" class="input" autocomplete="current-password">
+            </label>
+            <label class="field">
+              <span class="field-label">新密码（至少 8 位）</span>
+              <input type="password" id="pwNew" class="input" autocomplete="new-password">
+            </label>
+          </div>
+          <div class="grid2">
+            <label class="field">
+              <span class="field-label">用户名</span>
+              <input type="text" id="pwUser" class="input" maxlength="32">
+            </label>
+            <div class="field field-btn">
+              <button type="button" class="btn btn-ghost" id="pwSaveBtn">修改密码</button>
+            </div>
+          </div>
+          <p class="hint">改密码后请自己重新登录一次确认生效；不要把密码写在自定义代码里。</p>
+        </section>
+
+        <!-- ---------- 数据 ---------- -->
+        <section class="set-panel" id="p-data" hidden>
+          <div class="set-panel-head">
+            <h3>数据</h3>
+            <p>备份与迁移站点数据</p>
+          </div>
+          <div class="data-ops">
+            <button type="button" class="btn btn-ghost" id="exportBtn">导出 JSON</button>
+            <label class="btn btn-ghost" for="importFile">导入 JSON</label>
+            <input type="file" id="importFile" accept=".json,application/json" hidden>
+          </div>
+          <p class="hint">导入按「分类名 + 站点名」去重，不会产生重复项；不存在的分类会自动创建。</p>
+        </section>
+
+        <!-- ---------- 版本与更新 ---------- -->
+        <section class="set-panel" id="p-upd" hidden>
+          <div class="set-panel-head">
+            <h3>版本与更新</h3>
+            <p>查看版本号、从 GitHub 一键升级</p>
+          </div>
+          <div class="upd-row">
+            <span class="upd-cur">当前版本 <b id="updCur">—</b></span>
+            <button type="button" class="btn btn-ghost btn-sm2" id="updCheckBtn">检查更新</button>
+          </div>
+          <div id="updBox" class="upd-box" hidden></div>
+          <label class="field" style="margin-top:10px">
+            <span class="field-label">更新镜像（连不上 GitHub 时填）</span>
+            <input type="text" id="updMirror" class="input" placeholder="https://ghfast.top">
+          </label>
+          <p class="hint">「立即升级」会从 GitHub 拉最新源码覆盖程序文件，<b>不碰 data/ 目录</b>（站点数据不受影响），覆盖前自动备份。Docker 部署也能用。</p>
+        </section>
+
+        <p class="form-err" id="setErr"></p>
+        <p class="form-ok" id="setOk"></p>
+      </div>
     </div>
+
     <footer class="modal-foot">
+      <span class="modal-foot-tip" id="setFootTip">外观设置保存后立即对访客生效</span>
+      <span class="spacer"></span>
       <button type="button" class="btn btn-ghost" data-close="setModal">关闭</button>
       <button type="button" class="btn btn-primary" id="setSaveBtn">保存设置</button>
     </footer>

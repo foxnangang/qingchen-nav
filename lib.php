@@ -16,7 +16,7 @@ declare(strict_types=1);
 const NAV_ROOT    = __DIR__;
 const NAV_DB_PATH = NAV_ROOT . '/data/nav.db';
 const NAV_SESSION = 'qcnav_sid';
-const NAV_VERSION = '1.3.0';
+const NAV_VERSION = '1.3.1';
 
 /**
  * 程序的 URL 根路径，用于支持「装在子目录」。
@@ -191,6 +191,7 @@ function nav_default_settings(): array
         'admin_user'    => 'admin',
         'admin_hash'    => '',
         'footer_note'   => '',
+        'card_cols'     => '0',       // 每行卡片数：0 = 自动，4~8 固定列数
     ];
 }
 

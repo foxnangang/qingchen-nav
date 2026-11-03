@@ -655,6 +655,51 @@
     }
   }
 
+  /* ================================================================ 设置弹窗分区 */
+
+  var setPanelKey = 'p-look';
+
+  var SET_PANEL_META = {
+    'p-look':   { tip: '外观设置保存后立即对访客生效', btn: '保存外观',   show: true },
+    'p-access': { tip: '访问码单独保存；访问方式点右侧按钮生效', btn: '保存访问方式', show: true },
+    'p-secure': { tip: '填好后点「修改密码」生效',           btn: '',           show: false },
+    'p-data':   { tip: '导出即下载 JSON；导入按名称去重',    btn: '',           show: false },
+    'p-upd':    { tip: '升级只覆盖程序文件，不动 data/',     btn: '',           show: false }
+  };
+
+  function switchSetPanel(key) {
+    if (!SET_PANEL_META[key]) key = 'p-look';
+    setPanelKey = key;
+
+    document.querySelectorAll('#setNav .set-nav-item').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-panel') === key);
+    });
+    document.querySelectorAll('#setContent .set-panel').forEach(function (p) {
+      p.hidden = (p.id !== key);
+    });
+
+    var meta = SET_PANEL_META[key];
+    $('setFootTip').textContent = meta.tip;
+    var btn = $('setSaveBtn');
+    btn.hidden = !meta.show;
+    btn.textContent = meta.btn || '保存设置';
+
+    var content = $('setContent');
+    if (content) content.scrollTop = 0;
+  }
+
+  /* 左侧导航每项下面显示当前状态，省得点进去才知道 */
+  function updateSetHints() {
+    var c = state.config || {};
+    var cols = parseInt(c.card_cols, 10) || 0;
+    var themeName = { dark: '深色', light: '浅色', chabai: '茶白', forest: '森野', ocean: '深海', violet: '幽紫', mono: '极简', rose: '胭脂', terminal: '终端' }[c.theme] || '深色';
+    $('hintLook').textContent = themeName + ' · ' + (cols > 0 ? cols + ' 列' : '自适应');
+    $('hintAccess').textContent = (c.access === 'pin') ? '访问码保护' : '公开访问';
+    $('hintSecure').textContent = '用户 ' + (c.user || 'admin');
+    $('hintData').textContent = (state.stats.sites || 0) + ' 站 · ' + (state.stats.cats || 0) + ' 分类';
+    $('hintUpd').textContent = 'v' + (c.version || '—');
+  }
+
   function openSettings() {
     $('setErr').textContent = '';
     $('setOk').textContent = '';
@@ -668,6 +713,7 @@
     $('updBox').innerHTML = '';
     $('setCustomCss').value = state.config.custom_css || '';
     $('setCustomJs').value = state.config.custom_js || '';
+    $('setCardCols').value = String(parseInt(state.config.card_cols, 10) || 0);
     $('setAccess').value = state.config.access || 'public';
     $('setPin').value = '';
     $('pwOld').value = '';
@@ -684,6 +730,8 @@
     $('dimVal').textContent = dim + '%';
 
     renderPickers();
+    updateSetHints();
+    switchSetPanel(setPanelKey);
     openModal('setModal');
   }
 
@@ -705,10 +753,13 @@
       footer: $('setFooter').value.trim(),
       custom_css: $('setCustomCss').value,
       custom_js: $('setCustomJs').value,
+      card_cols: parseInt($('setCardCols').value, 10) || 0,
       access: $('setAccess').value
     }).then(function () {
       okEl.textContent = '设置已保存';
       return load();
+    }).then(function () {
+      updateSetHints();
     }).catch(function (e) { errEl.textContent = e.message; });
   }
 
@@ -819,6 +870,16 @@
 
   $('settingsBtn').addEventListener('click', openSettings);
   $('setSaveBtn').addEventListener('click', saveSettings);
+
+  // 左侧分区导航
+  document.querySelectorAll('#setNav .set-nav-item').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      switchSetPanel(btn.getAttribute('data-panel'));
+    });
+  });
+
+  var sideSettingsBtn = $('sideSettingsBtn');
+  if (sideSettingsBtn) sideSettingsBtn.addEventListener('click', openSettings);
 
   var dimEl = $('setBgDim');
   if (dimEl) {

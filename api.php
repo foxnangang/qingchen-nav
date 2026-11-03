@@ -359,6 +359,7 @@ switch ($action) {
                 'footer'   => nav_get('footer_note'),
                 'custom_css' => nav_get('custom_css', ''),
                 'custom_js'  => nav_get('custom_js', ''),
+                'card_cols'  => nav_get('card_cols', '0'),
                 'mirror'     => nav_get('update_mirror', ''),
                 'user'     => nav_get('admin_user'),
                 'version'  => NAV_VERSION,
@@ -548,6 +549,12 @@ switch ($action) {
         }
         if (isset($in['custom_js'])) {
             nav_set('custom_js', mb_substr(s($in, 'custom_js'), 0, 20000, 'UTF-8'));
+        }
+        // 每行卡片数：0 = 自动，4~8 = 固定列数
+        if (isset($in['card_cols'])) {
+            $cols = (int) $in['card_cols'];
+            if ($cols !== 0 && ($cols < 4 || $cols > 8)) $cols = 0;
+            nav_set('card_cols', (string) $cols);
         }
         if (isset($in['mirror'])) {
             $m = trim(s($in, 'mirror'));

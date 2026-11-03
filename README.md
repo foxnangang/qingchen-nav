@@ -210,7 +210,7 @@ services:
       - "18090:80"
     environment:
       TZ: Asia/Shanghai
-      QC_ADMIN_PASS: "foxnan888"   # ⚠️ 至少 8 位，装好后请改
+      QC_ADMIN_PASS: "nav-admin-2026"   # ⚠️ 至少 8 位，装好后请改
     volumes:
       - ./data:/var/www/html/data
     restart: unless-stopped
@@ -275,7 +275,7 @@ docker compose pull && docker compose up -d
     restart: unless-stopped
 ```
 
-> 🔑 **默认账号是 `admin` / `foxnan888`**。这个默认值只是让你贴完就能跑，**装好请立刻到后台「设置 → 修改密码」换掉**。
+> 🔑 **默认账号是 `admin` / `nav-admin-2026`**。这个默认值只是让你贴完就能跑，**装好请立刻到后台「设置 → 修改密码」换掉**。
 
 **关于端口写法**
 
@@ -324,7 +324,7 @@ docker run -d --name qcnav \
 
 | # | 规则 |
 |---|---|
-| 1 | **至少 8 位**，建议字母 + 数字混排。默认的 `foxnan888` 是 9 位，能跑，但请改掉 |
+| 1 | **至少 8 位**，建议字母 + 数字混排。默认的 `nav-admin-2026` 是 14 位，能跑，但请改掉 |
 | 2 | 只在**第一次启动、还没有数据库**时生效，用它创建 `admin` 账号 |
 | 3 | **已经装好之后再改这里没用** —— 改密码请登录后台「设置 → 修改密码」 |
 | 4 | 填了**不足 8 位**的密码，自动安装会跳过，你会看到安装页而不是导航页（页面顶部会写原因） |

@@ -80,10 +80,17 @@ if (is_file($cacheImg) && (@filesize($cacheImg) ?: 0) > 0) {
     send_image($cacheImg, $mime);
 }
 
-// 近期抓取失败过就不再反复打外网
-if (is_file($cacheMeta) && (time() - (@filemtime($cacheMeta) ?: 0)) < FAV_FAIL_TTL) {
+/* 统一的失败出口：404 也要带缓存头，否则浏览器每个页面都重问一遍 */
+function favicon_fail(): void {
+    header('Cache-Control: public, max-age=86400');
+    header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 86400) . ' GMT');
     http_response_code(404);
     exit;
+}
+
+// 近期抓取失败过就不再反复打外网
+if (is_file($cacheMeta) && (time() - (@filemtime($cacheMeta) ?: 0)) < FAV_FAIL_TTL) {
+    favicon_fail();
 }
 
 /* ---------- SSRF 防护 ---------- */
@@ -238,8 +245,7 @@ function save_fail(string $metaFile): void
 
 if (!host_is_public($domain)) {
     save_fail($cacheMeta);
-    http_response_code(404);
-    exit;
+    favicon_fail();
 }
 
 $base = 'https://' . $domain;
@@ -279,8 +285,7 @@ foreach (array_slice(array_unique($candidates), 0, 6) as $url) {
 
 if (!$saved) {
     save_fail($cacheMeta);
-    http_response_code(404);
-    exit;
+    favicon_fail();
 }
 
 send_image($cacheImg, $mime ?? 'image/png');

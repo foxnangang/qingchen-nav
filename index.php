@@ -34,6 +34,8 @@ $owner   = nav_get('owner', '');
 $footer  = nav_get('footer_note', '');
 $customCss = nav_get('custom_css', '');
 $customJs  = nav_get('custom_js', '');
+$cardCols  = (int) nav_get('card_cols', '0');   // 每行卡片数，0 = 自动
+if ($cardCols < 0 || $cardCols > 8) $cardCols = 0;
 $ver     = NAV_VERSION;
 $base    = nav_base();
 
@@ -75,6 +77,21 @@ $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JS
 <link rel="stylesheet" href="<?= $base ?>/assets/style.css?v=<?= esc($ver) ?>">
 <?php if ($bgImageOk || $bgDim !== 42): ?>
 <style>:root{<?= $bgImageOk ? '--photo-url:url("' . esc($bgImage) . '");' : '' ?>--photo-dim:<?= max(0, min(100, $bgDim)) / 100 ?>;}</style>
+<?php endif; ?>
+<?php if ($cardCols >= 4): ?>
+<style>
+/* 固定每行卡片数（后台设置）；窄屏自动降级，≤720px 仍走移动端布局 */
+:root{--card-cols:<?= $cardCols ?>;}
+@media (min-width:721px){
+  .grid{grid-template-columns:repeat(var(--card-cols),1fr);}
+}
+@media (min-width:721px) and (max-width:1399px){
+  .grid{grid-template-columns:repeat(4,1fr);}
+}
+@media (min-width:721px) and (max-width:999px){
+  .grid{grid-template-columns:repeat(3,1fr);}
+}
+</style>
 <?php endif; ?>
 </head>
 <body>
