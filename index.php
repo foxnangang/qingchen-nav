@@ -145,6 +145,14 @@ window.__CSRF__ = <?= json_encode($csrf) ?>;
           <circle cx="7.2" cy="14" r="1.1" fill="currentColor" stroke="none"/>
         </svg>
       </button>
+      <!-- 新增站点：仅管理员登录后才输出（未登录连元素都没有） -->
+      <?php if (nav_is_logged_in()): ?>
+      <button type="button" id="addSiteBtn" class="tool-btn" title="新增站点" aria-label="新增站点">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <path d="M12 5v14"/><path d="M5 12h14"/>
+        </svg>
+      </button>
+      <?php endif; ?>
       <a href="<?= $base ?>/admin/" class="tool-btn" title="后台管理" aria-label="后台管理">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
           <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
@@ -216,6 +224,33 @@ window.__CSRF__ = <?= json_encode($csrf) ?>;
 <?php endif; ?>
 <?php if ($customJs !== ''): ?>
 <script id="custom-js"><?= $customJs /* 管理员自定义 JS */ ?></script>
+<?php endif; ?>
+
+<?php if (nav_is_logged_in()): ?>
+<!-- 新增站点弹窗（仅管理员输出，未登录连 HTML 都不下发） -->
+<div class="em-mask" id="addMask" hidden>
+  <div class="em-box" role="dialog" aria-modal="true" aria-label="新增站点">
+    <div class="em-head">
+      <span>新增站点</span>
+      <button type="button" class="em-x" id="addClose" aria-label="关闭">&times;</button>
+    </div>
+    <div class="em-body">
+      <label class="em-row"><span>名称</span><input type="text" id="addName" class="em-input" maxlength="40" placeholder="站点名称"></label>
+      <label class="em-row"><span>网址</span><input type="text" id="addUrl" class="em-input" placeholder="https://…"></label>
+      <label class="em-row"><span>描述</span><input type="text" id="addDescr" class="em-input" maxlength="120" placeholder="选填，一句话说明"></label>
+      <label class="em-row"><span>角标</span><input type="text" id="addBadge" class="em-input" maxlength="6" placeholder="如 飞牛 / 新"></label>
+      <label class="em-row"><span>分类</span><select id="addCat" class="em-input"></select></label>
+      <div class="em-checks">
+        <label><input type="checkbox" id="addHl"> 置顶（图标带金圈）</label>
+      </div>
+    </div>
+    <div class="em-foot">
+      <span class="em-msg" id="addMsg"></span>
+      <button type="button" class="em-btn" id="addCancel">取消</button>
+      <button type="button" class="em-btn primary" id="addSave">保存</button>
+    </div>
+  </div>
+</div>
 <?php endif; ?>
 
 <script>window.__NAV__ = <?= json_encode($boot, $jsonFlags) ?>;</script>

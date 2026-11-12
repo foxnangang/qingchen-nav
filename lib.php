@@ -16,7 +16,7 @@ declare(strict_types=1);
 const NAV_ROOT    = __DIR__;
 const NAV_DB_PATH = NAV_ROOT . '/data/nav.db';
 const NAV_SESSION = 'qcnav_sid';
-const NAV_VERSION = '1.3.1';
+const NAV_VERSION = '1.3.2';
 
 /**
  * 程序的 URL 根路径，用于支持「装在子目录」。
@@ -460,6 +460,11 @@ function nav_bootstrap(): array
         'version'  => NAV_VERSION,
         'groups'   => $out,
         'total'    => count($sites),
+        // 前台「新增站点」的分类下拉用：全部分类，含暂时没有站点的
+        // （groups 只输出有站点的分类，空分类会选不到）
+        'cats'     => array_map(static function (array $c): array {
+            return ['id' => (int) $c['id'], 'name' => (string) $c['name']];
+        }, $cats),
     ];
 }
 

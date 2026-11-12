@@ -407,6 +407,9 @@ switch ($action) {
         ];
 
         if ($id > 0) {
+            // 勾上「置顶」要真的排到最前：highlight 本身只画金圈、不参与排序
+            $oldHl = (int) db()->query('SELECT highlight FROM sites WHERE id = ' . (int) $id)->fetchColumn();
+
             $sets = [];
             foreach (array_keys($fields) as $k) {
                 $sets[] = "$k = :$k";
@@ -415,11 +418,20 @@ switch ($action) {
             $fields['updated_at'] = nav_now();
             $sql = 'UPDATE sites SET ' . implode(', ', $sets) . ', updated_at = :updated_at WHERE id = :id';
             db()->prepare($sql)->execute($fields);
+
+            // 由「未置顶」变为「置顶」时，把 sort_order 提到该分类最前
+            if ($fields['highlight'] === 1 && $oldHl === 0) {
+                $st = db()->prepare('SELECT COALESCE(MIN(sort_order), 0) FROM sites WHERE category_id = ? AND id <> ?');
+                $st->execute([$cat, $id]);
+                $min = (int) $st->fetchColumn();
+                db()->prepare('UPDATE sites SET sort_order = ? WHERE id = ?')->execute([$min - 10, $id]);
+            }
+
             json_ok(['id' => $id, 'mode' => 'update']);
         }
 
         $max = (int) db()->query('SELECT COALESCE(MAX(sort_order),0) FROM sites')->fetchColumn();
-        $fields['sort_order'] = $max + 10;
+        $fields['sort_order'] = $fields['highlight'] === 1 ? 0 : $max + 10;
         $fields['created_at'] = nav_now();
         $fields['updated_at'] = nav_now();
         $cols = implode(', ', array_keys($fields));

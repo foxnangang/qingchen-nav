@@ -687,8 +687,102 @@
     kbdEl.style.display = 'none';
   }
 
+  /* ------------------------------------------------- 前台新增站点（仅管理员） */
+
+  var addMask = document.getElementById('addMask');
+  var addBusy = false;
+
+  function addEl(id) { return document.getElementById(id); }
+
+  function addOpen() {
+    if (!addMask) return;
+
+    // 分类下拉：优先全量分类（含暂时没有站点的），老数据回落到有站点的分组
+    var cats = (BOOT.cats && BOOT.cats.length) ? BOOT.cats : (BOOT.groups || []);
+    var sel = addEl('addCat');
+    sel.innerHTML = '';
+    cats.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.id;
+      o.textContent = g.name;
+      sel.appendChild(o);
+    });
+    if (cats.length) sel.value = cats[0].id;
+
+    addEl('addName').value = '';
+    addEl('addUrl').value = '';
+    addEl('addDescr').value = '';
+    addEl('addBadge').value = '';
+    addEl('addHl').checked = false;
+    addEl('addMsg').textContent = '';
+
+    addMask.hidden = false;
+    document.body.classList.add('em-open');
+    setTimeout(function () { addEl('addName').focus(); }, 30);
+  }
+
+  function addClose() {
+    if (!addMask) return;
+    addMask.hidden = true;
+    document.body.classList.remove('em-open');
+  }
+
+  function addSave() {
+    if (addBusy) return;
+
+    var name = addEl('addName').value.trim();
+    var url = addEl('addUrl').value.trim();
+    if (!name) { addEl('addMsg').textContent = '名称不能为空'; return; }
+    if (!url) { addEl('addMsg').textContent = '网址不能为空'; return; }
+
+    var btn = addEl('addSave');
+    addBusy = true;
+    btn.disabled = true;
+    addEl('addMsg').textContent = '保存中…';
+
+    post('site_save', {
+      id: 0,                                  // 0 = 新增
+      category_id: +addEl('addCat').value,
+      name: name,
+      url: url,
+      descr: addEl('addDescr').value.trim(),
+      icon: '',                               // 留空，自动抓 favicon
+      initial: '',
+      tags: '',
+      badge: addEl('addBadge').value.trim(),
+      highlight: addEl('addHl').checked ? 1 : 0,
+      visible: 1
+    }).then(function (res) {
+      if (!res || res.ok === false) throw new Error((res && res.error) || '保存失败');
+      addEl('addMsg').textContent = '已添加，正在刷新…';
+      setTimeout(function () { location.reload(); }, 400);
+    }).catch(function (err) {
+      addEl('addMsg').textContent = err.message || '保存失败';
+      btn.disabled = false;
+      addBusy = false;
+    });
+  }
+
+  function initAddSite() {
+    var btn = document.getElementById('addSiteBtn');
+    if (!btn || !addMask) return;   // 未登录时这两个元素根本不会输出
+
+    btn.hidden = false;
+    btn.addEventListener('click', addOpen);
+    addEl('addClose').addEventListener('click', addClose);
+    addEl('addCancel').addEventListener('click', addClose);
+    addEl('addSave').addEventListener('click', addSave);
+    addMask.addEventListener('click', function (e) {
+      if (e.target === addMask) addClose();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !addMask.hidden) addClose();
+    });
+  }
+
   /* ------------------------------------------------------------------ 启动 */
 
   build();
   doFilter('');
+  initAddSite();
 })();
